@@ -3,22 +3,31 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+import { useColorScheme } from 'react-native';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
+      <>
+        <StatusBar style="auto" />
+        <Stack screenOptions={{ headerShown: false }}>
+          {/* Auth screens */}
+          <Stack.Screen name="auth/index" />
+          <Stack.Screen name="auth/login" />
+          <Stack.Screen name="auth/register" />
+          
+          {/* Owner tabs */}
+          <Stack.Screen name="(owner-tabs)" />
+          
+          {/* Staff tabs */}
+          <Stack.Screen name="(staff-tabs)" />
+          
+          {/* Admin */}
+          <Stack.Screen name="(admin-tabs)" />
+        </Stack>
+      </>
     </ThemeProvider>
   );
 }
