@@ -1,12 +1,15 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { styles } from './styles/activity.styles';
 
 export default function Activity() {
   const handleActivityPress = (activityType: string, fileName: string) => {
     if (fileName === 'NewAcitivity.tsx') {
       router.push('/(owner-tabs)/activity/new');
+    } else if (activityType === 'Activity List') {
+      router.push('/(owner-tabs)/activity/list');
     } else {
       Alert.alert(
         'Activity Navigation',
@@ -20,46 +23,63 @@ export default function Activity() {
   };
 
   return (
-    <ScrollView 
-      style={styles.container}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent}
-    >
-      <View style={styles.header}>
-        <Text style={styles.title}>Activity</Text>
-        <Text style={styles.subtitle}>Manage your activities</Text>
-      </View>
-      
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity 
-          style={styles.activityButton}
-          onPress={() => router.push('/(owner-tabs)/activity/new')}
-        >
-          <Text style={styles.buttonText}>New Activity</Text>
-          <Text style={styles.buttonDescription}>Create a new activity</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.activityButton}
-          onPress={() => handleActivityPress('Activity List', 'Activity.tsx')}
-        >
-          <Text style={styles.buttonText}>Activity List</Text>
-          <Text style={styles.buttonDescription}>View all activities</Text>
-        </TouchableOpacity>
-        
-        
-        
-        
-        <TouchableOpacity 
-          style={[styles.activityButton, styles.paymentButton]}
-          onPress={() => handleActivityPress('Payments', 'Payments.tsx')}
-        >
-          <Text style={styles.buttonText}>Payments</Text>
-          <Text style={styles.buttonDescription}>Payment activities</Text>
-        </TouchableOpacity>
-        
-        
-      </View>
-    </ScrollView>
+    <View style={styles.container}>
+      <ScrollView 
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollViewContent}
+      >
+        {/* Logo Section */}
+        {/* <View style={styles.logoSection}>
+          <View style={styles.logoContainer}>
+            <Ionicons name="calendar" size={40} color="#f7b638" />
+          </View>
+          <Text style={styles.logoText}>Activity</Text>
+          <Text style={styles.tagline}>Manage Your Activities</Text>
+        </View> */}
+
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Activity</Text>
+          <TouchableOpacity style={styles.editButton} activeOpacity={0.7}>
+            <Ionicons name="calendar-outline" size={20} color="#1a1a1a" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Activity Card */}
+        <View style={styles.card}>
+          {/* Menu Section */}
+          <View style={styles.menuSection}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(owner-tabs)/activity/new')}>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuIconContainer}>
+                  <Ionicons name="add-circle" size={24} color="#780115" />
+                </View>
+                <Text style={styles.menuText}>New Activity</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#999999" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleActivityPress('Activity List', 'ActivityList.tsx')}>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuIconContainer}>
+                  <Ionicons name="list" size={24} color="#780115" />
+                </View>
+                <Text style={styles.menuText}>Activity List</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#999999" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleActivityPress('Payments', 'Payments.tsx')}>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuIconContainer}>
+                  <Ionicons name="card" size={24} color="#780115" />
+                </View>
+                <Text style={styles.menuText}>Payments</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#999999" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 }

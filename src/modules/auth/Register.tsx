@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Alert, StatusBar, ScrollView } from 'react-native';
-import { router } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, TouchableOpacity, Alert, ScrollView, Text } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { ThemedText } from '@/src/shared/components/themed-text';
-import { ThemedView } from '@/src/shared/components/themed-view';
 import { styles } from './styles/register.styles';
-import { StorageService } from '../../services/storage/storageService';
+import { AuthService, type RegisterData } from '../../services/authService';
 
 export default function Register() {
+  const { email: emailParam } = useLocalSearchParams<{ email: string }>();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
@@ -22,6 +21,20 @@ export default function Register() {
   const [shopName, setShopName] = useState('');
   const [shopAddress, setShopAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
+
+  // Check if user is coming from verified OTP flow
+  useEffect(() => {
+    console.log('Register.tsx - emailParam:', emailParam);
+    if (emailParam) {
+      console.log('Register.tsx - Setting verified email and showing registration form');
+      setVerifiedEmail(emailParam);
+      setShowEmailVerification(false);
+      setShowRegistrationForm(true);
+    }
+  }, [emailParam]);
 
   const handleSendOtp = async () => {
     if (!email) {
@@ -36,10 +49,12 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      // Simulate sending OTP
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const message = await AuthService.sendOtp({ email });
       setIsOtpSent(true);
-      Alert.alert('Success', 'OTP has been sent to your email address');
+      Alert.alert('Success', message);
+    } catch (error: any) {
+      console.error('Send OTP error:', error);
+      Alert.alert('Error', error.message || 'Failed to send OTP');
     } finally {
       setIsLoading(false);
     }
@@ -51,30 +66,33 @@ export default function Register() {
       return;
     }
 
-    if (otp.length !== 6) {
-      Alert.alert('Error', 'OTP must be 6 digits');
+    if (otp.length !== 4) {
+      Alert.alert('Error', 'OTP must be 4 digits');
       return;
     }
 
     setIsLoading(true);
     try {
-      // Simulate OTP verification (accept any 6-digit code for demo)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (otp.length === 6) {
-        setVerifiedEmail(email);
-        setShowEmailVerification(false);
-        setShowRegistrationForm(true);
-        Alert.alert('Success', 'Email verified successfully!');
-      } else {
-        Alert.alert('Error', 'Invalid OTP');
-      }
+      const message = await AuthService.verifyOtp({ email, otp });
+      setVerifiedEmail(email);
+      setShowEmailVerification(false);
+      setShowRegistrationForm(true);
+      Alert.alert('Success', message);
+    } catch (error: any) {
+      console.error('Verify OTP error:', error);
+      Alert.alert('Error', error.message || 'Failed to verify OTP');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleRegister = async () => {
+    // Prevent multiple registration attempts
+    if (isRegistered) {
+      console.log('Registration already in progress or completed');
+      return;
+    }
+
     // Validate all fields
     if (!fullName || !verifiedEmail || !mobileNumber || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
@@ -103,64 +121,105 @@ export default function Register() {
     }
 
     setIsLoading(true);
+    setIsRegistered(true);
 
     try {
-      // Simulate API call to register user
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const registerData: RegisterData = {
+        name: fullName.trim(),
+        email: verifiedEmail,
+        password: password,
+        phoneNumber: mobileNumber.trim(),
+        role: 'OWNER' as any,
+        shopName: shopName.trim(),
+        shopAddress: shopAddress.trim()
+      };
 
-      // Store user data as owner
-      await StorageService.setAuthData({
-        token: 'demo-token',
-        role: 'owner' as any,
-        isFirstTime: false,
-      });
+      const response = await AuthService.register(registerData);
 
-      Alert.alert(
-        'Success!',
-        `Your shop "${shopName}" has been registered successfully!`,
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/(tabs)' as any),
-          },
-        ]
-      );
-    } finally {
+      // Reset UI state and show success screen
+      setIsRegistered(false);
       setIsLoading(false);
+      setRegistrationSuccess(true);
+      setUserData(response);
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      setIsRegistered(false); // Reset on error to allow retry
+      setIsLoading(false);
+      Alert.alert('Registration Failed', error.message || 'An error occurred during registration');
     }
   };
 
-  // Show email verification screen (first screen)
-  if (showEmailVerification) {
+  // Show success screen after successful registration
+  if (registrationSuccess && userData) {
     return (
-      <ThemedView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#667eea" />
-        
-        {/* Background Decorations */}
-        <View style={styles.backgroundDecoration} />
-        <View style={styles.backgroundDecoration2} />
-        
+      <View style={styles.container}>
         <ScrollView 
-          style={styles.mainContent}
-          contentContainerStyle={{ flexGrow: 1 }}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           {/* Logo Section */}
           <View style={styles.logoSection}>
             <View style={styles.logoContainer}>
-              <Ionicons name="cut-outline" size={45} color="#FFFFFF" />
+              <Ionicons name="checkmark-circle" size={40} color="#10B981" />
             </View>
-            <ThemedText style={styles.logoText}>eSalon</ThemedText>
-            <ThemedText style={styles.tagline}>Beauty Meets Technology</ThemedText>
+            <Text style={styles.logoText}>Success!</Text>
+            <Text style={styles.tagline}>Account Created</Text>
           </View>
 
-          {/* Email Verification Section */}
-          <View style={styles.formSection}>
-            <ThemedText style={styles.title}>Register Your Shop</ThemedText>
-            <ThemedText style={styles.subtitle}>
+          {/* Success Card */}
+          <View style={styles.card}>
+            <Text style={styles.title}>Account Created Successfully!</Text>
+            <Text style={styles.subtitle}>
+              Welcome {userData?.name}! Your shop &quot;{shopName}&quot; has been registered successfully.
+            </Text>
+
+            <View style={styles.successDetails}>
+              <Text style={styles.successDetailText}>Email: {userData?.email}</Text>
+              <Text style={styles.successDetailText}>Shop: {shopName}</Text>
+              <Text style={styles.successDetailText}>Role: {userData?.role}</Text>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.registerButton, { backgroundColor: '#10B981' }]}
+              onPress={() => router.replace('/auth/login')}
+            >
+              <Text style={styles.registerButtonText}>
+                Go to Login
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // Show email verification screen (first screen)
+  if (showEmailVerification) {
+    return (
+      <View style={styles.container}>
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Logo Section */}
+          <View style={styles.logoSection}>
+            <View style={styles.logoContainer}>
+              <Ionicons name="cut" size={40} color="#f7b638" />
+            </View>
+            <Text style={styles.logoText}>eSalon</Text>
+            <Text style={styles.tagline}>Premium Salon Management</Text>
+          </View>
+
+          {/* Email Verification Card */}
+          <View style={styles.card}>
+            <Text style={styles.title}>Register Your Shop</Text>
+            <Text style={styles.subtitle}>
               Create your salon account and start managing your business
-            </ThemedText>
+            </Text>
 
             {/* Email Input */}
             <View style={styles.inputContainer}>
@@ -172,7 +231,7 @@ export default function Register() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
-                placeholderTextColor={styles.inputPlaceholder.color}
+                placeholderTextColor="#999999"
               />
             </View>
 
@@ -182,9 +241,9 @@ export default function Register() {
                 onPress={handleSendOtp}
                 disabled={isLoading}
               >
-                <ThemedText style={styles.registerButtonText}>
+                <Text style={styles.registerButtonText}>
                   {isLoading ? 'Sending OTP...' : 'Send OTP'}
-                </ThemedText>
+                </Text>
               </TouchableOpacity>
             ) : (
               <>
@@ -194,12 +253,12 @@ export default function Register() {
                     style={styles.input}
                     value={otp}
                     onChangeText={setOtp}
-                    placeholder="Enter 6-digit OTP"
+                    placeholder="Enter 4-digit OTP"
                     keyboardType="number-pad"
-                    maxLength={6}
+                    maxLength={4}
                     autoCapitalize="none"
                     autoCorrect={false}
-                    placeholderTextColor={styles.inputPlaceholder.color}
+                    placeholderTextColor="#999999"
                   />
                 </View>
 
@@ -208,9 +267,9 @@ export default function Register() {
                   onPress={handleVerifyOtp}
                   disabled={isLoading}
                 >
-                  <ThemedText style={styles.registerButtonText}>
+                  <Text style={styles.registerButtonText}>
                     {isLoading ? 'Verifying...' : 'Verify OTP'}
-                  </ThemedText>
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -218,71 +277,58 @@ export default function Register() {
                   onPress={handleSendOtp}
                   disabled={isLoading}
                 >
-                  <ThemedText style={styles.backButtonText}>Resend OTP</ThemedText>
+                  <Text style={styles.backButtonText}>Resend OTP</Text>
                 </TouchableOpacity>
               </>
             )}
 
             <TouchableOpacity
               style={[styles.backButton]}
-              onPress={() => {
-                setShowEmailVerification(false);
-                setEmail('');
-                setOtp('');
-                setIsOtpSent(false);
-              }}
+              onPress={() => router.back()}
               disabled={isLoading}
             >
-              <ThemedText style={styles.backButtonText}>Back</ThemedText>
+              <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </ThemedView>
+      </View>
     );
   }
 
   // Show registration form after email verification
   if (showRegistrationForm) {
     return (
-      <ThemedView style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#667eea" />
-        
-        {/* Background Decorations */}
-        <View style={styles.backgroundDecoration} />
-        <View style={styles.backgroundDecoration2} />
-        
+      <View style={styles.container}>
         <ScrollView 
-          style={styles.mainContent}
-          contentContainerStyle={{ flexGrow: 1 }}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           {/* Logo Section */}
           <View style={styles.logoSection}>
             <View style={styles.logoContainer}>
-              <Ionicons name="cut-outline" size={45} color="#FFFFFF" />
+              <Ionicons name="cut" size={40} color="#f7b638" />
             </View>
-            <ThemedText style={styles.logoText}>eSalon</ThemedText>
-            <ThemedText style={styles.tagline}>Beauty Meets Technology</ThemedText>
+            <Text style={styles.logoText}>eSalon</Text>
+            <Text style={styles.tagline}>Premium Salon Management</Text>
           </View>
 
-          {/* Welcome Section */}
-          <View style={styles.welcomeSection}>
-            <ThemedText style={styles.title}>Register Your Shop</ThemedText>
-            <ThemedText style={styles.subtitle}>
+          {/* Registration Form Card */}
+          <View style={styles.card}>
+            <Text style={styles.title}>Register Your Shop</Text>
+            <Text style={styles.subtitle}>
               Create your salon account and start managing your business
-            </ThemedText>
-            <ThemedText style={styles.verifiedEmail}>
+            </Text>
+            <Text style={styles.verifiedEmail}>
               ✅ Email: {verifiedEmail}
-            </ThemedText>
-          </View>
+            </Text>
 
-          {/* Form Section */}
-          <View style={styles.formSection}>
             {/* Personal Information */}
-            <ThemedText style={styles.sectionTitle}>Personal Information</ThemedText>
+            <Text style={styles.sectionTitle}>Personal Information</Text>
             
             <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Full Name</Text>
               <TextInput
                 style={styles.input}
                 value={fullName}
@@ -290,21 +336,23 @@ export default function Register() {
                 placeholder="Full name"
                 autoCapitalize="words"
                 autoCorrect={false}
-                placeholderTextColor={styles.inputPlaceholder.color}
+                placeholderTextColor="#999999"
               />
             </View>
 
             <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Email</Text>
               <TextInput
                 style={[styles.input, styles.disabledInput]}
                 value={verifiedEmail}
                 editable={false}
                 placeholder="Email address"
-                placeholderTextColor={styles.inputPlaceholder.color}
+                placeholderTextColor="#999999"
               />
             </View>
 
             <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Mobile Number</Text>
               <TextInput
                 style={styles.input}
                 value={mobileNumber}
@@ -313,11 +361,12 @@ export default function Register() {
                 keyboardType="phone-pad"
                 autoCapitalize="none"
                 autoCorrect={false}
-                placeholderTextColor={styles.inputPlaceholder.color}
+                placeholderTextColor="#999999"
               />
             </View>
 
             <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Password</Text>
               <TextInput
                 style={styles.input}
                 value={password}
@@ -326,11 +375,12 @@ export default function Register() {
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
-                placeholderTextColor={styles.inputPlaceholder.color}
+                placeholderTextColor="#999999"
               />
             </View>
 
             <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Confirm Password</Text>
               <TextInput
                 style={styles.input}
                 value={confirmPassword}
@@ -339,14 +389,15 @@ export default function Register() {
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
-                placeholderTextColor={styles.inputPlaceholder.color}
+                placeholderTextColor="#999999"
               />
             </View>
 
             {/* Shop Information */}
-            <ThemedText style={styles.sectionTitle}>Shop Information</ThemedText>
+            <Text style={styles.sectionTitle}>Shop Information</Text>
             
             <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Shop Name</Text>
               <TextInput
                 style={styles.input}
                 value={shopName}
@@ -354,11 +405,12 @@ export default function Register() {
                 placeholder="Shop name"
                 autoCapitalize="words"
                 autoCorrect={false}
-                placeholderTextColor={styles.inputPlaceholder.color}
+                placeholderTextColor="#999999"
               />
             </View>
 
             <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Shop Address</Text>
               <TextInput
                 style={styles.input}
                 value={shopAddress}
@@ -366,18 +418,18 @@ export default function Register() {
                 placeholder="Shop address"
                 autoCapitalize="words"
                 autoCorrect={false}
-                placeholderTextColor={styles.inputPlaceholder.color}
+                placeholderTextColor="#999999"
               />
             </View>
 
             <TouchableOpacity
-              style={[styles.registerButton, isLoading && styles.registerButtonDisabled]}
+              style={[styles.registerButton, (isLoading || isRegistered) && styles.registerButtonDisabled]}
               onPress={handleRegister}
-              disabled={isLoading}
+              disabled={isLoading || isRegistered}
             >
-              <ThemedText style={styles.registerButtonText}>
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </ThemedText>
+              <Text style={styles.registerButtonText}>
+                {isLoading ? 'Creating Account...' : isRegistered ? 'Processing...' : 'Create Account'}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -394,11 +446,11 @@ export default function Register() {
               }}
               disabled={isLoading}
             >
-              <ThemedText style={styles.backButtonText}>Back</ThemedText>
+              <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </ThemedView>
+      </View>
     );
   }
 

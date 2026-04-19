@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { styles } from './styles/newActivity.styles';
+import EmployeeService from '@/src/services/employee/EmployeeService';
+import ShopServicesService from '@/src/services/shopServicesService';
+import { ActivityService } from '@/src/services/activityService';
+import { useAuthStore } from '@/src/shared/hooks/useAuthStore';
 
 export default function NewAcitivity() {
   const getCurrentDateTime = () => {
@@ -33,6 +37,17 @@ export default function NewAcitivity() {
     paymentMethod: false,
   });
 
+  const [employees, setEmployees] = useState<{ label: string; value: string }[]>([]);
+  const [isLoadingEmployees, setIsLoadingEmployees] = useState(true);
+
+  const [services, setServices] = useState<{ label: string; value: string; price: number }[]>([]);
+  const [isLoadingServices, setIsLoadingServices] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  // Get auth state using hook for reactive updates
+  const authState = useAuthStore();
+
   // Update customer info time every minute
   useEffect(() => {
     const interval = setInterval(() => {
@@ -45,20 +60,111 @@ export default function NewAcitivity() {
     return () => clearInterval(interval);
   }, []);
 
-  const employees = [
-    { label: 'John Smith', value: 'john-smith' },
-    { label: 'Sarah Johnson', value: 'sarah-johnson' },
-    { label: 'Mike Chen', value: 'mike-chen' },
-    { label: 'Emily Davis', value: 'emily-davis' },
-  ];
 
-  const services = [
-    { label: 'Haircut - $25', value: 'haircut', price: 25 },
-    { label: 'Hair Coloring - $85', value: 'hair-coloring', price: 85 },
-    { label: 'Beard Trim - $15', value: 'beard-trim', price: 15 },
-    { label: 'Hair Styling - $45', value: 'hair-styling', price: 45 },
-    { label: 'Hair Treatment - $65', value: 'hair-treatment', price: 65 },
-  ];
+  const fetchEmployees = useCallback(async () => {
+    try {
+      setIsLoadingEmployees(true);
+      
+      // Get shopId from logged-in user to filter employees by shop
+      const shopId = authState.user?.shopId;
+      
+      console.log('Fetching employees for shopId:', shopId);
+      console.log('Auth state user:', authState.user);
+      
+      if (!shopId) {
+        console.error('No shopId found in auth state');
+        Alert.alert('Error', 'Shop ID not found. Please log in again.');
+        setEmployees([]);
+        return;
+      }
+      
+      console.log('Calling EmployeeService.getEmployeesByShop with shopId:', Number(shopId));
+      const data = await EmployeeService.getEmployeesByShop(Number(shopId));
+      console.log('Employees data received:', data);
+      
+      if (!data || data.length === 0) {
+        console.warn('No employees returned from API');
+        Alert.alert('Info', 'No employees found for your shop. Please add employees first.');
+        setEmployees([]);
+        return;
+      }
+      
+      // Transform employee data to dropdown format
+      const employeeOptions = data
+        .filter(emp => emp.status === 'active' || emp.status !== 'inactive') // Show active employees
+        .map(emp => ({
+          label: emp.name,
+          value: emp.id
+        }));
+      
+      console.log('Transformed employee options:', employeeOptions);
+      setEmployees(employeeOptions);
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+      Alert.alert('Error', `Failed to load employees: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setEmployees([]);
+    } finally {
+      setIsLoadingEmployees(false);
+    }
+  }, [authState.user?.shopId, authState.user]);
+
+  // Fetch employees and services on component mount
+  useEffect(() => {
+    fetchEmployees();
+    fetchServices();
+  }, [authState]);
+
+  const fetchServices = useCallback(async () => {
+    try {
+      setIsLoadingServices(true);
+      
+      // Get shopId from logged-in user to filter services by shop
+      const shopId = authState.user?.shopId;
+      
+      console.log('Fetching services for shopId:', shopId);
+      
+      if (!shopId) {
+        console.error('No shopId found in auth state');
+        setServices([]);
+        return;
+      }
+      
+      console.log('Calling ShopServicesService.getServicesByShopId with shopId:', shopId);
+      const data = await ShopServicesService.getServicesByShopId(shopId);
+      console.log('Services data received:', data);
+      
+      if (!data || data.length === 0) {
+        console.warn('No services returned from API');
+        Alert.alert('Info', 'No services found for your shop. Please add services first.');
+        setServices([]);
+        return;
+      }
+      
+      // Transform service data to dropdown format
+      const serviceOptions = data
+        .filter(service => service.isActive !== false) // Show active services
+        .map(service => ({
+          label: `${service.name} - $${service.price}`,
+          value: service.id?.toString() || '',
+          price: service.price
+        }));
+      
+      console.log('Transformed service options:', serviceOptions);
+      setServices(serviceOptions);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+      Alert.alert('Error', `Failed to load services: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setServices([]);
+    } finally {
+      setIsLoadingServices(false);
+    }
+  }, [authState.user?.shopId, authState.user]);
+
+  // Fetch employees and services on component mount
+  useEffect(() => {
+    fetchEmployees();
+    fetchServices();
+  }, [authState]);
 
   const paymentMethods = [
     { label: 'Cash', value: 'cash' },
@@ -114,9 +220,8 @@ export default function NewAcitivity() {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log('handleSubmit called');
-    Alert.alert('Debug', 'Button was pressed!');
     console.log('Form data:', formData);
     
     if (!formData.employee || formData.selectedServices.length === 0 || !formData.paidAmount || !formData.customerInfo) {
@@ -131,51 +236,85 @@ export default function NewAcitivity() {
     
     console.log('Validation passed');
 
-    const newActivity = {
-      id: Date.now().toString(),
-      employee: formData.employee,
-      customerInfo: formData.customerInfo,
-      services: formData.selectedServices,
-      paidAmount: parseFloat(formData.paidAmount),
-      paymentMethod: formData.paymentMethod,
-      servicePrice: getSelectedServicePrice(),
-    };
+    // Get shopId from auth state
+    const shopId = authState.user?.shopId;
+    
+    if (!shopId) {
+      Alert.alert('Error', 'Shop ID not found. Please log in again.');
+      return;
+    }
 
-    // Get employee name for display
-    const selectedEmployee = employees.find(emp => emp.value === formData.employee);
-    const employeeName = selectedEmployee ? selectedEmployee.label : 'Unknown';
+  // Get employee name for display
+  const selectedEmployee = employees.find(emp => emp.value === formData.employee);
+  const employeeName = selectedEmployee ? selectedEmployee.label : 'Unknown';
 
-    // Get selected services names for display
-    const selectedServiceNames = formData.selectedServices.map(serviceValue => {
-      const service = services.find(s => s.value === serviceValue);
-      return service ? service.label : 'Unknown Service';
-    }).join(', ');
+  // Get selected services names for display
+  const selectedServiceNames = formData.selectedServices.map(serviceValue => {
+    const service = services.find(s => s.value === serviceValue);
+    return service ? service.label : 'Unknown Service';
+  }).join(', ');
 
-    Alert.alert(
-      'Activity Created Successfully! ',
-      `Employee: ${employeeName}\nCustomer: ${formData.customerInfo}\nServices: ${selectedServiceNames}\nTotal: $${getSelectedServicePrice()}\nPaid: $${formData.paidAmount}\nPayment: ${formData.paymentMethod}`,
-      [
-        { text: 'OK', onPress: () => router.back() }
-      ]
-    );
-
-    console.log('New Activity Created:', newActivity);
+  const newActivity = {
+    type: 'SALE',
+    description: `Service sale: ${selectedServiceNames}`,
+    amount: getSelectedServicePrice(),
+    employeeId: Number(formData.employee),
+    employeeName: employeeName,
+    customerInfo: formData.customerInfo,
+    services: formData.selectedServices,
+    serviceNames: selectedServiceNames,
+    paidAmount: parseFloat(formData.paidAmount),
+    paymentMethod: formData.paymentMethod,
+    servicePrice: getSelectedServicePrice(),
+    // shopId and userId removed - backend will derive from authenticated user for security
+    timestamp: new Date().toISOString(),
   };
 
-  const handleCancel = () => {
+  console.log('Creating activity with data:', newActivity);
+
+  try {
+    setIsCreating(true);
+    
+    // Call backend API to create activity
+    const response = await ActivityService.addActivity(newActivity);
+    console.log('Activity created successfully:', response);
+
+    // Show success UI
+    setShowSuccess(true);
+    
+    // Auto-navigate to activity list after 2 seconds
+    setTimeout(() => {
+      router.replace('/(owner-tabs)/activity/list');
+    }, 2000);
+    
+  } catch (error) {
+    console.error('Error creating activity:', error);
     Alert.alert(
-      'Cancel',
-      'Are you sure you want to cancel?',
+      'Error',
+      `Failed to create activity: ${error instanceof Error ? error.message : 'Unknown error'}`,
       [
-        { text: 'No', style: 'cancel' },
-        { text: 'Yes', onPress: () => router.back() }
+        { text: 'OK' }
       ]
     );
-  };
+  } finally {
+    setIsCreating(false);
+  }
+};
 
-  return (
+const handleCancel = () => {
+  Alert.alert(
+    'Cancel',
+    'Are you sure you want to cancel?',
+    [
+      { text: 'No', style: 'cancel' },
+      { text: 'Yes', onPress: () => router.back() }
+    ]
+  );
+};
+
+return (
+  <View style={styles.container}>
     <ScrollView 
-      style={styles.container}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"
@@ -189,16 +328,22 @@ export default function NewAcitivity() {
         {/* Employee Selection */}
         <View style={styles.formGroup}>
           <Text style={styles.label}>Select Employee *</Text>
-          <TouchableOpacity 
-            style={styles.dropdownTrigger}
-            onPress={() => toggleDropdown('employee')}
-          >
-            <Text style={styles.dropdownTriggerText}>
-              {getSelectedLabel(employees, formData.employee)}
-            </Text>
-            <Text style={styles.dropdownArrow}>{'\u25bc'}</Text>
-          </TouchableOpacity>
-          {dropdownStates.employee && (
+          {isLoadingEmployees ? (
+            <View style={styles.dropdownTrigger}>
+              <ActivityIndicator size="small" color="#007AFF" />
+            </View>
+          ) : (
+            <TouchableOpacity 
+              style={styles.dropdownTrigger}
+              onPress={() => toggleDropdown('employee')}
+            >
+              <Text style={styles.dropdownTriggerText}>
+                {employees.length === 0 ? 'No employees available' : getSelectedLabel(employees, formData.employee)}
+              </Text>
+              <Text style={styles.dropdownArrow}>{'\u25bc'}</Text>
+            </TouchableOpacity>
+          )}
+          {dropdownStates.employee && !isLoadingEmployees && employees.length > 0 && (
             <View style={styles.dropdownContainer}>
               {employees.map((employee) => (
                 <TouchableOpacity
@@ -236,16 +381,22 @@ export default function NewAcitivity() {
         {/* Services Dropdown */}
         <View style={styles.formGroup}>
           <Text style={styles.label}>Services *</Text>
-          <TouchableOpacity 
-            style={styles.dropdownTrigger}
-            onPress={() => toggleDropdown('service')}
-          >
-            <Text style={styles.dropdownTriggerText}>
-              {getSelectedServicesLabel()}
-            </Text>
-            <Text style={styles.dropdownArrow}>{'\u25bc'}</Text>
-          </TouchableOpacity>
-          {dropdownStates.service && (
+          {isLoadingServices ? (
+            <View style={styles.dropdownTrigger}>
+              <ActivityIndicator size="small" color="#007AFF" />
+            </View>
+          ) : (
+            <TouchableOpacity 
+              style={styles.dropdownTrigger}
+              onPress={() => toggleDropdown('service')}
+            >
+              <Text style={styles.dropdownTriggerText}>
+                {services.length === 0 ? 'No services available' : getSelectedServicesLabel()}
+              </Text>
+              <Text style={styles.dropdownArrow}>{'\u25bc'}</Text>
+            </TouchableOpacity>
+          )}
+          {dropdownStates.service && !isLoadingServices && services.length > 0 && (
             <View style={styles.dropdownContainer}>
               {services.map((service) => (
                 <TouchableOpacity
@@ -281,7 +432,7 @@ export default function NewAcitivity() {
         {/* Payment Summary */}
         <View style={styles.paymentSummary}>
           <Text style={styles.sectionTitle}>Payment Summary</Text>
-          
+          {/* ... */}
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Service Price:</Text>
             <Text style={styles.summaryValue}>${getSelectedServicePrice()}</Text>
@@ -347,12 +498,31 @@ export default function NewAcitivity() {
           <TouchableOpacity 
             style={styles.submitButton} 
             onPress={handleSubmit}
+            disabled={isCreating}
             activeOpacity={0.7}
           >
-            <Text style={styles.submitButtonText}>Create Activity</Text>
+            {isCreating ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.submitButtonText}>Create Activity</Text>
+            )}
           </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
-  );
+
+    {/* Success Overlay */}
+    {showSuccess && (
+      <View style={styles.successOverlay}>
+        <View style={styles.successContent}>
+          <View style={styles.successIcon}>
+            <Text style={styles.successIconText}>✓</Text>
+          </View>
+          <Text style={styles.successTitle}>Activity Created!</Text>
+          <Text style={styles.successMessage}>Service activity has been recorded successfully</Text>
+        </View>
+      </View>
+    )}
+  </View>
+);
 }

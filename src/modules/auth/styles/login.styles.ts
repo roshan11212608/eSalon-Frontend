@@ -3,191 +3,219 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    backgroundColor: '#780115',
   },
-  
-  mainContent: {
+
+  scrollView: {
     flex: 1,
-    paddingHorizontal: 20,
   },
-  
-  // Background decoration
-  backgroundDecoration: {
-    position: 'absolute',
-    top: -50,
-    right: -50,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+
+  scrollViewContent: {
+    flexGrow: 1,
   },
-  
-  backgroundDecoration2: {
-    position: 'absolute',
-    bottom: -80,
-    left: -80,
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  
-  // Logo Section with glassmorphism
+
+  // Logo Section
   logoSection: {
     alignItems: 'center',
-    marginTop: 50,
-    marginBottom: 30,
+    paddingTop: 60,
+    paddingBottom: 40,
   },
-  
+
   logoContainer: {
-    width: 90,
-    height: 90,
-    borderRadius: 25,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    backdropFilter: 'blur(10px)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: '#f7b638',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
-    shadowColor: '#000',
+    marginBottom: 20,
+    shadowColor: '#f7b638',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 8,
   },
-  
-  logoText: {
-    fontSize: 32,
-    fontWeight: '800',
+
+  appName: {
+    fontSize: 36,
+    fontWeight: '700',
     color: '#FFFFFF',
     letterSpacing: 2,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 4,
+    marginBottom: 8,
   },
-  
+
   tagline: {
-    fontSize: 12,
+    fontSize: 14,
     color: 'rgba(255, 255, 255, 0.8)',
-    letterSpacing: 1,
-    marginTop: 5,
-  },
-  
-  // Welcome Section
-  welcomeSection: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    marginBottom: 10,
     letterSpacing: 0.5,
   },
-  
-  subtitle: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: 'center',
-    lineHeight: 20,
-    paddingHorizontal: 30,
-    letterSpacing: 0.2,
-  },
-  
-  // Form Section with glassmorphism cards
-  formSection: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingBottom: 30,
-  },
-  
-  inputContainer: {
-    marginBottom: 18,
-    position: 'relative',
-  },
-  
-  input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    backdropFilter: 'blur(10px)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    fontSize: 16,
-    color: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  
-  inputPlaceholder: {
-    color: 'rgba(255, 255, 255, 0.6)',
-  },
-  
-  forgotPasswordButton: {
-    alignItems: 'flex-end',
-    marginBottom: 25,
-  },
-  
-  forgotPasswordText: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.8)',
-    textDecorationLine: 'underline',
-    letterSpacing: 0.3,
-  },
-  
-  // Modern button design
-  loginButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    backdropFilter: 'blur(10px)',
-    borderRadius: 16,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginBottom: 20,
+
+  // Login Card
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 32,
+    marginHorizontal: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+
+  // Title
+  title: {
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#780115',
+    marginBottom: 24,
+    letterSpacing: 0.3,
+  },
+
+  // Error Message
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef2f2',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: '#fecaca',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 24,
   },
-  
+
+  errorText: {
+    fontSize: 14,
+    color: '#dc2626',
+    marginLeft: 8,
+    flex: 1,
+  },
+
+  // Input Container
+  inputContainer: {
+    marginBottom: 20,
+  },
+
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#dddddd',
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    minHeight: 52,
+  },
+
+  inputWrapperFocused: {
+    borderColor: '#f7b638',
+    borderWidth: 2,
+  },
+
+  inputIcon: {
+    marginRight: 12,
+  },
+
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: '#1a1a1a',
+    paddingVertical: 0,
+  },
+
+  passwordToggle: {
+    padding: 8,
+    marginLeft: 8,
+  },
+
+  // Remember me and forgot password
+  actionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+
+  rememberMeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderWidth: 2,
+    borderColor: '#dddddd',
+    borderRadius: 6,
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  checkboxChecked: {
+    backgroundColor: '#780115',
+    borderColor: '#780115',
+  },
+
+  checkboxInner: {
+    width: 12,
+    height: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 3,
+  },
+
+  rememberMeText: {
+    fontSize: 14,
+    color: '#666666',
+  },
+
+  forgotPasswordButton: {
+    paddingVertical: 4,
+  },
+
+  forgotPasswordText: {
+    fontSize: 14,
+    color: '#780115',
+    fontWeight: '500',
+  },
+
+  // Login Button
+  loginButton: {
+    backgroundColor: '#f7b638',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: 24,
+    minHeight: 52,
+    justifyContent: 'center',
+  },
+
   loginButtonDisabled: {
-    opacity: 0.6,
+    backgroundColor: '#E5E5E5',
   },
-  
+
   loginButtonText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#764ba2',
+    fontWeight: '600',
+    color: '#1a1a1a',
     letterSpacing: 0.5,
   },
-  
-  // Create account with modern styling
+
+  // Create account
   createAccountContainer: {
     alignItems: 'center',
-    paddingVertical: 15,
+    paddingVertical: 8,
   },
-  
+
   createAccountText: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    letterSpacing: 0.2,
+    color: '#666666',
   },
-  
+
   createAccountLink: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: '#780115',
     fontWeight: '600',
-    textDecorationLine: 'underline',
-    letterSpacing: 0.3,
   },
 });

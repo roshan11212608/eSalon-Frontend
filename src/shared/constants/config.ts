@@ -2,7 +2,7 @@ export const APP_CONFIG = {
   name: 'eSalon',
   version: '1.0.0',
   api: {
-    baseUrl: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api',
+    baseUrl: process.env.EXPO_PUBLIC_API_URL || 'http://127.0.0.1:8080/api',
     timeout: 10000,
   },
   storage: {

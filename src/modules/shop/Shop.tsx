@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { styles } from './styles/shop.styles';
 import ShopServices from '../shopServices/ShopServices';
 
@@ -27,59 +28,63 @@ export default function Shop() {
     }
   };
   return (
-    <ScrollView 
-      style={styles.container}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent}
-    >
-      <View style={styles.header}>
-        <Text style={styles.title}>Shop Management</Text>
-        <Text style={styles.subtitle}>Manage your salon</Text>
-      </View>
-      
-      <View style={styles.content}>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Shop Information</Text>
-          <Text style={styles.cardText}>Jimmy&apos;s Salon</Text>
-          <Text style={styles.cardText}>123 Main Street</Text>
-          <Text style={styles.cardText}>Downtown, City</Text>
-        </View>
-        
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Business Hours</Text>
-          <Text style={styles.cardText}>Mon-Fri: 9:00 AM - 8:00 PM</Text>
-          <Text style={styles.cardText}>Sat: 9:00 AM - 6:00 PM</Text>
-          <Text style={styles.cardText}>Sun: 10:00 AM - 4:00 PM</Text>
-        </View>
-        
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Quick Actions</Text>
-          <TouchableOpacity style={styles.actionButton} onPress={() => handleNavigation('shopServices')}>
-            <Text style={styles.actionButtonText}>Shop Services</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={() => handleNavigation('employees')}>
-            <Text style={styles.actionButtonText}>Employees</Text>
-          </TouchableOpacity>
-          {/* <TouchableOpacity style={styles.actionButton} onPress={() => handleNavigation('customers')}>
-            <Text style={styles.actionButtonText}>Customers</Text>
-          </TouchableOpacity> */}
-          <TouchableOpacity style={styles.actionButton} onPress={() => handleNavigation('expenses')}>
-            <Text style={styles.actionButtonText}>Expenses </Text>
-          </TouchableOpacity>
-        </View>
-        
-        {/* <View style={styles.card}>
-          <Text style={styles.cardTitle}>Services Overview</Text>
-          <ShopServices />
+    <View style={styles.container}>
+      <ScrollView 
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollViewContent}
+      >
+        {/* Logo Section */}
+        {/* <View style={styles.logoSection}>
+          <View style={styles.logoContainer}>
+            <Ionicons name="storefront" size={40} color="#f7b638" />
+          </View>
+          <Text style={styles.logoText}>Shop</Text>
+          <Text style={styles.tagline}>Manage Your Salon</Text>
         </View> */}
-        
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>References</Text>
-          <Text style={styles.cardText}>John Doe - Regular Customer</Text>
-          <Text style={styles.cardText}>Jane Smith - VIP Member</Text>
-          <Text style={styles.cardText}>Mike Johnson - Weekly Barber</Text>
+
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Shop Management</Text>
+          <TouchableOpacity style={styles.editButton} activeOpacity={0.7}>
+            <Ionicons name="settings-outline" size={20} color="#1a1a1a" />
+          </TouchableOpacity>
         </View>
-      </View>
-    </ScrollView>
+
+        {/* Shop Card */}
+        <View style={styles.card}>
+          {/* Menu Section */}
+          <View style={styles.menuSection}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation('shopServices')}>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuIconContainer}>
+                  <Ionicons name="cut" size={24} color="#780115" />
+                </View>
+                <Text style={styles.menuText}>Shop Services</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#999999" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation('employees')}>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuIconContainer}>
+                  <Ionicons name="people" size={24} color="#780115" />
+                </View>
+                <Text style={styles.menuText}>Employees</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#999999" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation('expenses')}>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuIconContainer}>
+                  <Ionicons name="wallet" size={24} color="#780115" />
+                </View>
+                <Text style={styles.menuText}>Expenses</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#999999" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 }

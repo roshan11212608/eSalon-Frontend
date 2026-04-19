@@ -6,23 +6,17 @@ export default function OwnerTabsLayout() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Ionicons name="person-circle" size={28} color="#FFFFFF" />
-          <View style={styles.logoTextContainer}>
-            <Text style={styles.logo}>eSalon</Text>
-            <Text style={styles.ownerTag}>Owner</Text>
-          </View>
-        </View>
+        <Text style={styles.title}>eSalon</Text>
       </View>
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: '#007AFF',
-          tabBarInactiveTintColor: '#8E8E93',
+          tabBarActiveTintColor: '#780115',
+          tabBarInactiveTintColor: '#999999',
           tabBarStyle: {
             backgroundColor: '#FFFFFF',
             borderTopWidth: 1,
-            borderTopColor: '#E5E5EA',
+            borderTopColor: '#E5E5E5',
             paddingBottom: 8,
             paddingTop: 8,
             height: 70,
@@ -112,40 +106,32 @@ export default function OwnerTabsLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#780115',
   },
   header: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 32,
-    paddingVertical: 28,
+    backgroundColor: '#780115',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    marginHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 16,
+    borderRadius: 16,
+    shadowColor: '#f7b638',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.6,
+    shadowRadius: 24,
+    elevation: 12,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#f7b638',
   },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoTextContainer: {
-    marginLeft: 12,
-  },
-  logo: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    letterSpacing: 1,
-  },
-  ownerTag: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    overflow: 'hidden',
+  title: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#f7b638',
+    letterSpacing: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 4,
   },
 });

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { ProfileService } from '../../../services/profileService';
 
-export const useProfileData = () => {
+export const useProfileData = (userId: number) => {
   const [profile, setProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -13,24 +13,29 @@ export const useProfileData = () => {
         setLoading(true);
         setError(null);
         
-        const profileData = await ProfileService.getProfileData();
+        console.log('useProfileData - Loading profile for userId:', userId);
+        const profileData = await ProfileService.getProfileData(userId);
+        console.log('useProfileData - Profile data received:', profileData);
         setProfile(profileData);
       } catch (err) {
+        console.error('useProfileData - Error loading profile:', err);
         setError(err instanceof Error ? err.message : 'Failed to load profile');
       } finally {
         setLoading(false);
       }
     };
 
-    loadProfile();
-  }, []);
+    if (userId) {
+      loadProfile();
+    }
+  }, [userId]);
 
   const updateProfile = async (profileData: any) => {
     try {
       setLoading(true);
       setError(null);
       
-      const updatedProfile = await ProfileService.updateProfile(profileData);
+      const updatedProfile = await ProfileService.updateProfile(userId, profileData);
       setProfile(updatedProfile);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update profile');
@@ -57,7 +62,7 @@ export const useProfileData = () => {
       setLoading(true);
       setError(null);
       
-      await ProfileService.deleteAccount();
+      await ProfileService.deleteAccount(userId);
       setProfile(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete account');

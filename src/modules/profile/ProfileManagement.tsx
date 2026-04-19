@@ -1,15 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Image } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { StorageService } from '../../services/storage/storageService';
 import { authStore } from '../../store';
+import { useAuthStore } from '../../shared/hooks/useAuthStore';
+import { useProfileData } from './hooks/useProfileData';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import { styles } from './styles/ProfileManagement.styles';
 
 export default function ProfileManagement() {
   const router = useRouter();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  
+  const authState = useAuthStore();
+  const userId = authState.user?.id ? Number(authState.user.id) : 0;
+  const { profile, loading, error } = useProfileData(userId);
 
   const handleLogout = async () => {
+    Haptics.notificationAsync();
     setShowLogoutModal(true);
   };
 
@@ -17,70 +27,150 @@ export default function ProfileManagement() {
     setShowLogoutModal(false);
     
     try {
-      // Clear storage
       await StorageService.clearAuthData();
-      
-      // Clear auth store state
-      authStore.logout();
-      
-      // Navigate to login screen
+      await authStore.logout();
       router.replace('/auth/login');
     } catch (error) {
       console.error('Logout error:', error);
-      // In a real app, you might want to show an error message
       alert('Failed to sign out. Please try again.');
     }
   };
 
   const cancelLogout = () => {
+    Haptics.notificationAsync();
     setShowLogoutModal(false);
   };
+
+  const handleEditProfile = () => {
+    Haptics.impactAsync();
+    router.push('/profile/edit');
+  };
+
+  const handlePrivacySecurity = () => {
+    Haptics.impactAsync();
+    router.push('/profile/privacy');
+  };
+
+  const handleHelpSupport = () => {
+    Haptics.impactAsync();
+    router.push('/profile/help');
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#f7b638" />
+        <Text style={styles.loadingText}>Loading profile...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Ionicons name="alert-circle" size={48} color="#f7b638" />
+        <Text style={styles.errorText}>Error loading profile</Text>
+        <Text style={styles.errorSubtext}>{error}</Text>
+      </View>
+    );
+  }
+
+  const getInitials = (name: string) => {
+    if (!name) return 'U';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const MenuItem = ({ icon, title, onPress }: { icon: keyof typeof Ionicons.glyphMap; title: string; onPress: () => void }) => (
+    <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
+      <View style={styles.menuItemContent}>
+        <View style={styles.menuIcon}>
+          <Ionicons name={icon} size={24} color="#780115" />
+        </View>
+        <Text style={styles.menuText}>{title}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color="#999999" />
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.mainContainer}>
       <ScrollView 
-        style={styles.container}
+        style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={styles.scrollViewContent}
       >
+        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Profile</Text>
-          <Text style={styles.subtitle}>Account Settings</Text>
+          <TouchableOpacity style={styles.editButton} onPress={handleEditProfile} activeOpacity={0.7}>
+            <Ionicons name="create-outline" size={20} color="#1a1a1a" />
+          </TouchableOpacity>
         </View>
-        
-        <View style={styles.content}>
+
+        {/* Profile Card */}
+        <View style={styles.card}>
           <View style={styles.profileCard}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>JD</Text>
+            <View style={styles.avatarContainer}>
+              {profile?.avatarUrl ? (
+                <Image source={{ uri: profile.avatarUrl }} style={styles.avatarImage} />
+              ) : (
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{getInitials(profile?.name || 'U')}</Text>
+                </View>
+              )}
             </View>
-            <Text style={styles.name}>Jimmy Doe</Text>
-            <Text style={styles.email}>jimmy@esalon.com</Text>
-            <Text style={styles.role}>Hair Stylist</Text>
+            <Text style={styles.name}>{profile?.name || 'Unknown User'}</Text>
+            <Text style={styles.email}>{profile?.email || 'No email'}</Text>
+            
+            {profile?.shopId && (
+              <View style={styles.shopIdBadge}>
+                <Ionicons name="pricetag" size={14} color="#780115" />
+                <Text style={styles.shopIdText}>Shop ID: {profile.shopId}</Text>
+              </View>
+            )}
+            
+            {authState.role && (
+              <View style={styles.roleBadge}>
+                <Ionicons name="person" size={14} color="#780115" />
+                <Text style={styles.roleText}>{authState.role.charAt(0).toUpperCase() + authState.role.slice(1)}</Text>
+              </View>
+            )}
+            
+            {(profile?.customUserId || authState.user?.userId) && (
+              <View style={styles.userIdBadge}>
+                <Ionicons name="id-card" size={14} color="#780115" />
+                <Text style={styles.userIdText}>User ID: {profile?.customUserId || authState.user?.userId}</Text>
+              </View>
+            )}
+            
+            {profile?.shopName && (
+              <View style={styles.shopBadge}>
+                <Ionicons name="storefront" size={16} color="#780115" />
+                <Text style={styles.shopBadgeText}>{profile.shopName}</Text>
+              </View>
+            )}
+            
+            {profile?.shopAddress && (
+              <View style={styles.shopAddressContainer}>
+                <Ionicons name="location" size={14} color="#666666" />
+                <Text style={styles.shopAddressText}>{profile.shopAddress}</Text>
+              </View>
+            )}
+            
+            {profile?.bio && (
+              <View style={styles.bioContainer}>
+                <Text style={styles.bio}>{profile.bio}</Text>
+              </View>
+            )}
           </View>
           
           <View style={styles.menuSection}>
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuText}>Edit Profile</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuText}>My Schedule</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuText}>Notifications</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuText}>Privacy & Security</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuText}>Help & Support</Text>
-            </TouchableOpacity>
+            <MenuItem icon="shield-checkmark-outline" title="Privacy & Security" onPress={handlePrivacySecurity} />
+            <MenuItem icon="help-circle-outline" title="Help & Support" onPress={handleHelpSupport} />
           </View>
           
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.7}>
+            <Ionicons name="log-out-outline" size={24} color="#1a1a1a" />
             <Text style={styles.logoutText}>Sign Out</Text>
           </TouchableOpacity>
         </View>
@@ -98,105 +188,3 @@ export default function ProfileManagement() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 32,
-  },
-  header: {
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  content: {
-    flex: 1,
-  },
-  profileCard: {
-    backgroundColor: '#FFFFFF',
-    padding: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  avatarText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  email: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  role: {
-    fontSize: 12,
-    color: '#007AFF',
-    fontWeight: '500',
-  },
-  menuSection: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  menuItem: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  menuText: {
-    fontSize: 16,
-    color: '#1F2937',
-  },
-  logoutButton: {
-    backgroundColor: '#EF4444',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  logoutText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-});

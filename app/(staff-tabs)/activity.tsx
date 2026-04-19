@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { Redirect } from 'expo-router';
-import Activity from '@/src/modules/activity/Activity';
+import StaffActivity from '@/src/modules/activity/StaffActivity';
 import { StorageService } from '@/src/services/storage/storageService';
 
 export default function StaffActivityScreen() {
@@ -36,5 +36,5 @@ export default function StaffActivityScreen() {
     return <Redirect href="/auth/login" />;
   }
 
-  return <Activity />;
+  return <StaffActivity />;
 }

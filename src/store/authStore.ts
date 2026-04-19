@@ -11,7 +11,7 @@ interface AuthState {
 
 interface AuthActions {
   login: (token: string, role: 'owner' | 'staff' | 'admin', user: User) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   setLoading: (loading: boolean) => void;
   setUser: (user: User) => void;
 }
@@ -35,7 +35,7 @@ class AuthStore {
   subscribe(listener: (state: AuthState) => void): () => void {
     this.listeners.push(listener);
     listener(this.getState());
-    
+
     // Return unsubscribe function
     return () => {
       const index = this.listeners.indexOf(listener);
@@ -61,7 +61,7 @@ class AuthStore {
     this.notifyListeners();
   }
 
-  logout(): void {
+  async logout(): Promise<void> {
     this.state = {
       token: null,
       role: null,
@@ -70,6 +70,7 @@ class AuthStore {
       isLoading: false,
     };
     this.notifyListeners();
+    return Promise.resolve();
   }
 
   setLoading(loading: boolean): void {

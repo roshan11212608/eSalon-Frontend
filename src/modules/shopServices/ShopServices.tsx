@@ -1,78 +1,49 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Modal } from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { shopServicesStyles } from './styles/shopServices.styles';
-import AddNewServices from './AddNewServices';
+import shopServicesService from '@/src/services/shopServicesService';
+import { useAuthStore } from '../../shared/hooks/useAuthStore';
 
 export default function Services() {
-  const [services, setServices] = useState([
-    {
-      id: '1',
-      name: 'Haircut',
-      category: 'Hair Services',
-      price: 25,
-      duration: '30 min',
-      status: 'active',
-      description: 'Professional haircut with styling',
-      icon: 'cut'
-    },
-    {
-      id: '2',
-      name: 'Beard Trim',
-      category: 'Hair Services',
-      price: 15,
-      duration: '15 min',
-      status: 'active',
-      description: 'Beard trimming and shaping',
-      icon: 'create-outline'
-    },
-    {
-      id: '3',
-      name: 'Hair Coloring',
-      category: 'Hair Services',
-      price: 60,
-      duration: '120 min',
-      status: 'active',
-      description: 'Full hair coloring service',
-      icon: 'color-palette-outline'
-    },
-    {
-      id: '4',
-      name: 'Shave',
-      category: 'Hair Services',
-      price: 20,
-      duration: '20 min',
-      status: 'active',
-      description: 'Traditional hot towel shave',
-      icon: 'razor-outline'
-    },
-    {
-      id: '5',
-      name: 'Facial',
-      category: 'Skin Care',
-      price: 40,
-      duration: '45 min',
-      status: 'active',
-      description: 'Deep cleansing facial treatment',
-      icon: 'sparkles-outline'
-    },
-    {
-      id: '6',
-      name: 'Head Massage',
-      category: 'Massage',
-      price: 30,
-      duration: '30 min',
-      status: 'active',
-      description: 'Relaxing head massage',
-      icon: 'fitness-outline'
-    }
-  ]);
-
-  const [showAddModal, setShowAddModal] = useState(false);
-
+  const router = useRouter();
+  const [services, setServices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  // Get shopId from auth store using hook for reactive updates
+  const authState = useAuthStore();
+  const shopId = authState.user?.shopId;
+
+  const fetchServices = useCallback(async () => {
+    try {
+      setLoading(true);
+      console.log('Fetching services with shopId:', shopId);
+      const data = await shopServicesService.getServicesByShopId(shopId || '');
+      console.log('Services fetched:', data);
+      setServices(data);
+    } catch (error) {
+      console.error('Error fetching services:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [shopId]);
+
+  useEffect(() => {
+    fetchServices();
+  }, [fetchServices]);
+
+  // Refresh services when screen comes into focus (after navigating back from add page)
+  useFocusEffect(
+    useCallback(() => {
+      fetchServices();
+    }, [fetchServices])
+  );
 
   const filteredServices = services.filter(service => {
     const matchesSearch = service.name.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -85,27 +56,39 @@ export default function Services() {
 
   const handleAddService = () => {
     Haptics.notificationAsync();
-    setShowAddModal(true);
+    router.push('/shopServices/addNewServices');
   };
 
-  const handleSaveService = (newService: any) => {
-    const serviceToAdd = {
-      id: Date.now().toString(),
-      ...newService
-    };
-
-    setServices([...services, serviceToAdd]);
-    setShowAddModal(false);
+  const handleDeleteService = (id: number) => {
+    setServiceToDelete(String(id));
+    setShowDeleteModal(true);
   };
 
-  const toggleServiceStatus = (id: string) => {
-    Haptics.impactAsync();
-    setServices(services.map(service => 
-      service.id === id 
-        ? { ...service, status: service.status === 'active' ? 'inactive' : 'active' }
-        : service
-    ));
+  const confirmDeleteService = async () => {
+    if (!serviceToDelete) return;
+    try {
+      await shopServicesService.deleteService(Number(serviceToDelete));
+      setServices(services.filter(service => service.id !== Number(serviceToDelete)));
+      setShowDeleteModal(false);
+      setServiceToDelete(null);
+    } catch (error) {
+      console.error('Error deleting service:', error);
+      alert('Failed to delete service');
+    }
   };
+
+  const cancelDeleteService = () => {
+    setShowDeleteModal(false);
+    setServiceToDelete(null);
+  };
+
+  if (loading) {
+    return (
+      <View style={shopServicesStyles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
 
   return (
     <>
@@ -115,9 +98,9 @@ export default function Services() {
         contentContainerStyle={shopServicesStyles.scrollContent}
       >
       <View style={shopServicesStyles.header}>
-        <Text style={shopServicesStyles.title}>Services</Text>
+        <Text style={shopServicesStyles.title}>Shop Services</Text>
         <TouchableOpacity style={shopServicesStyles.addButton} onPress={handleAddService}>
-          <Ionicons name="add" size={20} color="#FFFFFF" />
+          <Ionicons name="add" size={20} color="#1a1a1a" />
         </TouchableOpacity>
       </View>
 
@@ -172,30 +155,19 @@ export default function Services() {
               </View>
               <View style={shopServicesStyles.servicePricing}>
                 <Text style={shopServicesStyles.servicePrice}>Rs {service.price}</Text>
-                <Text style={shopServicesStyles.serviceDuration}>{service.duration}</Text>
+                <Text style={shopServicesStyles.serviceDuration}>{service.durationMinutes} min</Text>
               </View>
             </View>
-            
+
             <View style={shopServicesStyles.serviceFooter}>
-              <View style={shopServicesStyles.statusContainer}>
-                <View style={[
-                  shopServicesStyles.statusIndicator,
-                  { backgroundColor: service.status === 'active' ? '#10B981' : '#EF4444' }
-                ]} />
-                <Text style={shopServicesStyles.statusText}>
-                  {service.status === 'active' ? 'Active' : 'Inactive'}
-                </Text>
-              </View>
-              
               <TouchableOpacity
-                style={shopServicesStyles.toggleButton}
-                onPress={() => toggleServiceStatus(service.id)}
+                style={shopServicesStyles.deleteButton}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleDeleteService(service.id);
+                }}
               >
-                <Ionicons 
-                  name={service.status === 'active' ? 'eye-off' : 'eye'} 
-                  size={16} 
-                  color="#6B7280" 
-                />
+                <Ionicons name="trash" size={16} color="#DC2626" />
               </TouchableOpacity>
             </View>
           </View>
@@ -203,11 +175,78 @@ export default function Services() {
       </View>
     </ScrollView>
 
-      <AddNewServices 
-        visible={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSave={handleSaveService}
-      />
+      <Modal
+        visible={showDeleteModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={cancelDeleteService}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20,
+        }}>
+          <View style={{
+            backgroundColor: '#FFFFFF',
+            borderRadius: 16,
+            padding: 24,
+            width: '100%',
+            maxWidth: 320,
+          }}>
+            <View style={{ alignItems: 'center', marginBottom: 16 }}>
+              <View style={{
+                width: 64,
+                height: 64,
+                borderRadius: 32,
+                backgroundColor: '#FEE2E2',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: 16,
+              }}>
+                <Ionicons name="trash" size={32} color="#DC2626" />
+              </View>
+              <Text style={{ fontSize: 20, fontWeight: '700', color: '#1F2937', marginBottom: 8 }}>
+                Delete Service
+              </Text>
+              <Text style={{ fontSize: 14, color: '#6B7280', textAlign: 'center' }}>
+                Are you sure you want to delete this service? This action cannot be undone.
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: '#F3F4F6',
+                  borderRadius: 8,
+                  padding: 12,
+                  alignItems: 'center',
+                }}
+                onPress={cancelDeleteService}
+              >
+                <Text style={{ fontSize: 16, fontWeight: '600', color: '#374151' }}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  flex: 1,
+                  backgroundColor: '#DC2626',
+                  borderRadius: 8,
+                  padding: 12,
+                  alignItems: 'center',
+                }}
+                onPress={confirmDeleteService}
+              >
+                <Text style={{ fontSize: 16, fontWeight: '600', color: '#FFFFFF' }}>
+                  Delete
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }

@@ -10,11 +10,9 @@ interface AddNewServicesProps {
   onSave: (service: {
     name: string;
     price: number;
-    category: string;
-    duration: string;
+    durationMinutes: number;
     description: string;
-    icon: string;
-    status: string;
+    isActive: boolean;
   }) => void;
 }
 
@@ -35,11 +33,9 @@ export default function AddNewServices({ visible, onClose, onSave }: AddNewServi
     const serviceToAdd = {
       name: newService.name,
       price: parseFloat(newService.price),
-      category: 'Hair Services',
-      duration: '30 min',
+      durationMinutes: 30,
       description: 'Professional service',
-      icon: newService.icon,
-      status: 'active'
+      isActive: true
     };
 
     onSave(serviceToAdd);
@@ -70,6 +66,7 @@ export default function AddNewServices({ visible, onClose, onSave }: AddNewServi
           <Text style={styles.modalTitle}>Add New Service</Text>
         </View>
         <View style={styles.modalContent}>
+          {/* Shop ID field removed - backend will derive shop from authenticated user for security */}
           <Text style={styles.formLabel}>Service Name</Text>
           <TextInput
             style={styles.formInput}

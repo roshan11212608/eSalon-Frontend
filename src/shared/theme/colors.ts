@@ -1,32 +1,32 @@
 // Color palette for eSalon app
 export const colors = {
-  // Primary colors - Green theme
+  // Primary colors - Maroon theme
   primary: {
-    main: '#e4e5ef',      // Emerald green
-    light: '#f68309e0',     // Light green
-    dark: '#047857',      // Dark green
-    background: '#e8240a', // Green background
+    main: '#780115',      // Maroon
+    light: '#f7b638',     // Gold
+    dark: '#5a010e',      // Dark maroon
+    background: '#780115', // Maroon background
   },
   
-  // Secondary colors - Dark green
+  // Secondary colors - Dark maroon
   secondary: {
-    main: '#047857',      // Dark green
-    light: '#065F46',     // Darker green
-    background: '#eaf2f0', // Very dark green
+    main: '#5a010e',      // Dark maroon
+    light: '#780115',     // Maroon
+    background: '#e8e8e8', // Light gray
   },
   
   // Neutral colors
   neutral: {
-    50: '#F0FDF4',
-    100: '#DCFCE7',
-    200: '#BBF7D0',
-    300: '#86EFAC',
-    400: '#4ADE80',
-    500: '#22C55E',
-    600: '#16A34A',
-    700: '#15803D',
-    800: '#166534',
-    900: '#14532D',
+    50: '#F9FAFB',
+    100: '#F3F4F6',
+    200: '#E5E7EB',
+    300: '#D1D5DB',
+    400: '#9CA3AF',
+    500: '#6B7280',
+    600: '#4B5563',
+    700: '#374151',
+    800: '#1F2937',
+    900: '#111827',
   },
   
   // Status colors
@@ -39,26 +39,26 @@ export const colors = {
   
   // Background colors
   background: {
-    primary: 'rgb(10, 51, 133)',    // Green primary background
-    secondary: '#047857',   // Dark green secondary background
-    tertiary: '#064E3B',    // Very dark green background
-    surface: 'rgba(255, 255, 255, 0.1)', // Semi-transparent white
+    primary: '#780115',    // Maroon primary background
+    secondary: '#5a010e',   // Dark maroon secondary background
+    tertiary: '#F9FAFB',    // Light gray background
+    surface: '#FFFFFF', // White surface
     overlay: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black
   },
   
   // Text colors
   text: {
-    primary: '#FFFFFF',      // White primary text
-    secondary: '#F3F4F6',  // Light gray text
-    muted: '#D1D5DB',      // Muted gray text
-    inverse: '#000000',     // Black text for white backgrounds
+    primary: '#1F2937',      // Dark gray primary text
+    secondary: '#6B7280',  // Medium gray text
+    muted: '#9CA3AF',      // Muted gray text
+    inverse: '#FFFFFF',     // White text for dark backgrounds
   },
   
   // Border colors
   border: {
-    light: 'rgba(255, 255, 255, 0.2)', // Light white border
-    medium: 'rgba(255, 255, 255, 0.3)',  // Medium white border
-    dark: 'rgba(255, 255, 255, 0.4)',    // Dark white border
+    light: '#E5E7EB', // Light gray border
+    medium: '#D1D5DB',  // Medium gray border
+    dark: '#9CA3AF',    // Dark gray border
   },
   
   // Shadow colors

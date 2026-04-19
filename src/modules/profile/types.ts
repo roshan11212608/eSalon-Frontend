@@ -1,36 +1,25 @@
-// Profile module types
+// Profile module types - aligned with backend ProfileDto
 export interface UserProfile {
-  id: string;
+  id: number;
+  userId: number;
+  shopId?: number;
   name: string;
   email: string;
-  phone?: string;
-  avatar?: string;
-  role: 'owner' | 'staff' | 'admin';
-  shopId?: string;
-  shopName?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ProfileSettings {
-  notifications: {
-    email: boolean;
-    push: boolean;
-    sms: boolean;
-  };
-  privacy: {
-    showPhone: boolean;
-    showEmail: boolean;
-  };
-  preferences: {
-    language: string;
-    theme: 'light' | 'dark' | 'auto';
-  };
+  bio?: string;
+  avatarUrl?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zipCode?: string;
 }
 
 export interface ProfileUpdateData {
-  name?: string;
-  phone?: string;
-  avatar?: string;
-  settings?: Partial<ProfileSettings>;
+  bio?: string;
+  avatarUrl?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zipCode?: string;
 }

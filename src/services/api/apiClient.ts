@@ -3,7 +3,9 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { StorageService } from '../storage/storageService';
 
 // API base configuration
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.esalon.com/v1';
+// Use your computer's IP for mobile device testing
+// const API_BASE_URL = "http://192.168.1.60:8080/api";
+const API_BASE_URL = "http://127.0.0.1:8080/api";
 const API_TIMEOUT = 10000; // 10 seconds
 
 // Create axios instance with default configuration
@@ -58,41 +60,49 @@ export const API_ENDPOINTS = {
     REGISTER: '/auth/register',
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
+    HEALTH: '/auth/',
+    SEND_OTP: '/auth/send-otp',
+    VERIFY_OTP: '/auth/verify-otp',
   },
-  // User management
-  USER: {
-    PROFILE: '/user/profile',
-    UPDATE: '/user/update',
-    DELETE: '/user/delete',
+  // Profile
+  PROFILE: {
+    BASE: '/profile',
+    BY_USER: (userId: number) => `/profile/${userId}`,
   },
   // Shop management
   SHOP: {
-    LIST: '/shop/list',
-    CREATE: '/shop/create',
-    UPDATE: '/shop/update',
-    DELETE: '/shop/delete',
-    SETTINGS: '/shop/settings',
+    BASE: '/shop',
+    BY_ID: (id: number) => `/shop/${id}`,
   },
-  // Appointments
-  APPOINTMENT: {
-    LIST: '/appointment/list',
-    CREATE: '/appointment/create',
-    UPDATE: '/appointment/update',
-    DELETE: '/appointment/delete',
-    CANCEL: '/appointment/cancel',
+  // Shop Services
+  SHOP_SERVICE: {
+    BASE: '/shop-services',
+    BY_ID: (id: number) => `/shop-services/${id}`,
   },
-  // Services
-  SERVICE: {
-    LIST: '/service/list',
-    CREATE: '/service/create',
-    UPDATE: '/service/update',
-    DELETE: '/service/delete',
+  // Employees
+  EMPLOYEE: {
+    BASE: '/employees',
+    BY_ID: (id: number) => `/employees/${id}`,
+    BY_SHOP: (shopId: number) => `/employees/shop/${shopId}`,
   },
-  // Analytics
-  ANALYTICS: {
-    DASHBOARD: '/analytics/dashboard',
-    REPORTS: '/analytics/reports',
-    STATS: '/analytics/stats',
+  // Activities
+  ACTIVITY: {
+    BASE: '/activity',
+    BY_ID: (id: number) => `/activity/${id}`,
+    BY_SHOP: (shopId: number) => `/activity/shop/${shopId}`,
+    BY_USER: (userId: number) => `/activity/user/${userId}`,
+  },
+  // Expenses
+  EXPENSE: {
+    BASE: '/expenses',
+    BY_ID: (id: number) => `/expenses/${id}`,
+    BY_SHOP: (shopId: number) => `/expenses/shop/${shopId}`,
+  },
+  // Dashboard
+  DASHBOARD: {
+    SHOP: (shopId: number) => `/dashboard/shop/${shopId}`,
+    OWNER: (ownerId: number) => `/dashboard/owner/${ownerId}`,
+    ADMIN: '/dashboard/admin',
   },
 } as const;
 

@@ -4,16 +4,31 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const STORAGE_KEYS = {
   TOKEN: 'user_token',
   ROLE: 'user_role', // 'owner' | 'staff' | 'admin'
-  IS_FIRST_TIME: 'is_first_time'
+  IS_FIRST_TIME: 'is_first_time',
+  SHOP_ID: 'shop_id',
+  USER_DATA: 'user_data'
 };
 
 // Types
 export type UserRole = 'owner' | 'staff' | 'admin';
 
+export interface UserData {
+  id: string;
+  userId?: string;
+  name: string;
+  email: string;
+  role?: UserRole;
+  phone?: string;
+  shopId?: string;
+  shopName?: string;
+  shopAddress?: string;
+}
+
 export interface AuthData {
   token: string;
   role: UserRole;
   isFirstTime: boolean;
+  shopId?: string;
 }
 
 // Storage service
@@ -50,26 +65,44 @@ export class StorageService {
     }
   }
 
+  // Get shopId
+  static async getShopId(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem(STORAGE_KEYS.SHOP_ID);
+    } catch (error) {
+      console.error('Error getting shopId:', error);
+      return null;
+    }
+  }
+
   // Get all auth data
   static async getAuthData(): Promise<AuthData> {
     try {
-      const [token, role, isFirstTime] = await Promise.all([
+      const [token, role, isFirstTime, shopId] = await Promise.all([
         this.getToken(),
         this.getRole(),
-        this.getIsFirstTime()
+        this.getIsFirstTime(),
+        this.getShopId()
       ]);
+
+      console.log('StorageService.getAuthData - token:', token);
+      console.log('StorageService.getAuthData - role:', role);
+      console.log('StorageService.getAuthData - isFirstTime:', isFirstTime);
+      console.log('StorageService.getAuthData - shopId:', shopId);
 
       return {
         token: token || '',
-        role: role || 'owner', // Default to owner
-        isFirstTime: isFirstTime ?? true
+        role: role as UserRole, // Don't default to owner, use actual stored role
+        isFirstTime: isFirstTime ?? true,
+        shopId: shopId || undefined
       };
     } catch (error) {
       console.error('Error getting auth data:', error);
       return {
         token: '',
         role: 'owner',
-        isFirstTime: true
+        isFirstTime: true,
+        shopId: undefined
       };
     }
   }
@@ -104,14 +137,30 @@ export class StorageService {
     }
   }
 
+  // Save shopId
+  static async setShopId(shopId: string): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.SHOP_ID, shopId);
+    } catch (error) {
+      console.error('Error setting shopId:', error);
+      throw error;
+    }
+  }
+
   // Save all auth data
   static async setAuthData(authData: AuthData): Promise<void> {
     try {
-      await Promise.all([
+      const promises = [
         this.setToken(authData.token),
         this.setRole(authData.role),
         this.setIsFirstTime(authData.isFirstTime)
-      ]);
+      ];
+      
+      if (authData.shopId) {
+        promises.push(this.setShopId(authData.shopId));
+      }
+      
+      await Promise.all(promises);
     } catch (error) {
       console.error('Error setting auth data:', error);
       throw error;
@@ -124,7 +173,9 @@ export class StorageService {
       await Promise.all([
         AsyncStorage.removeItem(STORAGE_KEYS.TOKEN),
         AsyncStorage.removeItem(STORAGE_KEYS.ROLE),
-        AsyncStorage.removeItem(STORAGE_KEYS.IS_FIRST_TIME)
+        AsyncStorage.removeItem(STORAGE_KEYS.IS_FIRST_TIME),
+        AsyncStorage.removeItem(STORAGE_KEYS.SHOP_ID),
+        AsyncStorage.removeItem(STORAGE_KEYS.USER_DATA)
       ]);
     } catch (error) {
       console.error('Error clearing auth data:', error);
@@ -136,5 +187,26 @@ export class StorageService {
   static async isAuthenticated(): Promise<boolean> {
     const token = await this.getToken();
     return !!token;
+  }
+
+  // Get user data
+  static async getUserData(): Promise<UserData | null> {
+    try {
+      const userDataJson = await AsyncStorage.getItem(STORAGE_KEYS.USER_DATA);
+      return userDataJson ? JSON.parse(userDataJson) : null;
+    } catch (error) {
+      console.error('Error getting user data:', error);
+      return null;
+    }
+  }
+
+  // Save user data
+  static async setUserData(userData: UserData): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+    } catch (error) {
+      console.error('Error setting user data:', error);
+      throw error;
+    }
   }
 }

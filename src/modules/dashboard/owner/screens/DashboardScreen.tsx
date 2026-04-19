@@ -2,12 +2,74 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { StorageService } from '@/src/services/storage/storageService';
 
 export default function OwnerDashboardScreen() {
   console.log('OwnerDashboardScreen: Component rendering...');
   
   const [refreshing, setRefreshing] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
+  const [shopId, setShopId] = useState<string | null>(null);
+  
+  // Get shopId from backend API
+  useEffect(() => {
+    const fetchShopId = async () => {
+      try {
+        const token = await StorageService.getToken();
+        const userData = await StorageService.getUserData();
+        
+        if (!token) {
+          console.log('No token found, cannot fetch shopId');
+          return;
+        }
+        
+        if (!userData || !userData.id) {
+          console.log('No user data found, cannot fetch shopId');
+          return;
+        }
+
+        const userId = parseInt(userData.id);
+        console.log('Fetching shopId for userId:', userId);
+
+        // Fetch user profile from backend using correct endpoint
+        const response = await fetch(`http://127.0.0.1:8080/api/profile/${userId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('User profile data:', data);
+          const shopIdFromBackend = data.data?.shopId || data.shopId;
+          console.log('ShopId from backend:', shopIdFromBackend);
+          
+          if (shopIdFromBackend) {
+            setShopId(shopIdFromBackend.toString());
+            // Also save it to StorageService for future use
+            await StorageService.setShopId(shopIdFromBackend.toString());
+          }
+        } else {
+          console.error('Failed to fetch user profile:', response.status);
+        }
+      } catch (error) {
+        console.error('Error fetching shopId from backend:', error);
+        
+        // Fallback to StorageService
+        try {
+          const authData = await StorageService.getAuthData();
+          const directShopId = await StorageService.getShopId();
+          setShopId(authData.shopId || directShopId || null);
+        } catch (storageError) {
+          console.error('Error loading shopId from storage:', storageError);
+          setShopId(null);
+        }
+      }
+    };
+    
+    fetchShopId();
+  }, []);
   
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -46,8 +108,11 @@ export default function OwnerDashboardScreen() {
         <Animated.View style={[styles.animatedContainer, { opacity: fadeAnim }]}>
           <View style={styles.header}>
             <View style={styles.headerContent}>
-              <Text style={styles.title}>Owner Dashboard</Text>
-              <Text style={styles.subtitle}>Welcome back!</Text>
+              <View>
+                <Text style={styles.title}>Owner Dashboard</Text>
+                <Text style={styles.subtitle}>Welcome back!</Text>
+                {shopId && <Text style={styles.shopIdText}>Shop ID: {shopId}</Text>}
+              </View>
             </View>
           </View>
         </Animated.View>
@@ -249,6 +314,12 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: '#6B7280',
+  },
+  shopIdText: {
+    fontSize: 14,
+    color: '#007AFF',
+    fontWeight: '600',
+    marginTop: 4,
   },
   statsContainer: {
     flexDirection: 'row',

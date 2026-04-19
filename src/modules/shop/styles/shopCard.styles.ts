@@ -1,31 +1,34 @@
 import { StyleSheet } from 'react-native';
-import { colors } from '../../../shared/theme/colors';
-import { spacing } from '../../../shared/theme/spacing';
-import { borderRadius } from '../../../shared/theme/borderRadius';
-import { shadows } from '../../../shared/theme/shadows';
 
 export const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.background.surface,
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    ...shadows.small,
+    backgroundColor: '#FFFFFF',
+    padding: 32,
+    borderRadius: 20,
+    marginHorizontal: 20,
+    marginBottom: 40,
+    minHeight: 250,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 12,
   },
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.text.primary,
-    marginBottom: spacing.xs,
+    color: '#666666',
+    marginBottom: 12,
   },
   value: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: '700',
-    color: colors.primary.main,
-    marginBottom: spacing.xs,
+    color: '#780115',
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
-    color: colors.text.secondary,
+    color: '#666666',
   },
 });

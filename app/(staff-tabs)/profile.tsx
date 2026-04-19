@@ -26,8 +26,8 @@ export default function StaffProfileScreen() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8F9FA' }}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#780115' }}>
+        <ActivityIndicator size="large" color="#f7b638" />
       </View>
     );
   }

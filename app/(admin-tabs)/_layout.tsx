@@ -17,7 +17,7 @@ export default function AdminLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: '#FF3B30',
+          tabBarActiveTintColor: '#780115',
           tabBarInactiveTintColor: '#6B7280',
           tabBarStyle: {
             backgroundColor: '#FFFFFF',
@@ -61,10 +61,10 @@ export default function AdminLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#780115',
   },
   header: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: '#780115',
     paddingHorizontal: 32,
     paddingVertical: 28,
     alignItems: 'center',
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#FFFFFF',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(247, 182, 56, 0.2)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
