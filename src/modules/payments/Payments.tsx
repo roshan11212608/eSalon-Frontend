@@ -22,6 +22,7 @@ export interface Payment {
   description: string;
   date: string;
   status: 'pending' | 'completed' | 'cancelled';
+  verificationStatus?: 'PENDING' | 'VERIFIED' | 'REJECTED';
   createdAt: string;
   itemType: 'payment';
 }
@@ -30,14 +31,15 @@ export interface Payment {
 export default function Payments() {
   const router = useRouter();
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [paymentToDelete, setPaymentToDelete] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [paymentToDelete, setPaymentToDelete] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{type: 'verify' | 'cancel', id: string} | null>(null);
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [searchText, setSearchText] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const authState = useAuthStore();
 
@@ -83,6 +85,7 @@ export default function Payments() {
         description: p.description || '',
         date: p.paymentDate.split('T')[0],
         status: p.status.toLowerCase() as 'pending' | 'completed' | 'cancelled',
+        verificationStatus: p.verificationStatus as 'PENDING' | 'VERIFIED' | 'REJECTED',
         createdAt: p.createdAt,
         commissionRate: p.commissionRate ? (typeof p.commissionRate === 'number' ? p.commissionRate : parseFloat(String(p.commissionRate))) : undefined,
         commissionAmount: p.commissionAmount ? (typeof p.commissionAmount === 'number' ? p.commissionAmount : parseFloat(String(p.commissionAmount))) : undefined,
@@ -140,6 +143,48 @@ export default function Payments() {
     } catch (error) {
       console.error('Error deleting payment:', error);
       Alert.alert('Error', 'Failed to delete payment');
+    }
+  };
+
+  const handleVerifyPayment = (id: string) => {
+    setConfirmAction({ type: 'verify', id });
+  };
+
+  const handleCancelPayment = (id: string) => {
+    setConfirmAction({ type: 'cancel', id });
+  };
+
+  const executeVerifyPayment = async () => {
+    if (!confirmAction) return;
+    try {
+      await PaymentService.verifyPayment(parseInt(confirmAction.id));
+      setPayments(payments.map(p => p.id === confirmAction.id ? { ...p, verificationStatus: 'VERIFIED' } : p));
+      setSuccessMessage('Payment verified successfully');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error) {
+      setSuccessMessage('Failed to verify payment');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } finally {
+      setConfirmAction(null);
+    }
+  };
+
+  const executeCancelPayment = async () => {
+    if (!confirmAction) return;
+    try {
+      await PaymentService.cancelPayment(parseInt(confirmAction.id));
+      setPayments(payments.map(p => p.id === confirmAction.id ? { ...p, status: 'cancelled' } : p));
+      setSuccessMessage('Payment cancelled successfully');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error) {
+      setSuccessMessage('Failed to cancel payment');
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } finally {
+      setConfirmAction(null);
     }
   };
 
@@ -211,9 +256,11 @@ export default function Payments() {
         {/* Fixed Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Pay<Text style={styles.titleAccent}>ments</Text></Text>
-          <TouchableOpacity style={styles.addButton} onPress={handleAddPayment}>
-            <Ionicons name="add" size={20} style={styles.addButtonIcon} />
-          </TouchableOpacity>
+          {authState.user?.role?.toUpperCase() === 'OWNER' && (
+            <TouchableOpacity style={styles.addButton} onPress={handleAddPayment}>
+              <Ionicons name="add" size={20} style={styles.addButtonIcon} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Search Section */}
@@ -281,21 +328,26 @@ export default function Payments() {
                 <Text style={styles.emptyMessage}>
                   Start tracking your salon payments
                 </Text>
-                <TouchableOpacity
-                  style={styles.emptyButton}
-                  onPress={handleAddPayment}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="add" size={20} color="#FFFFFF" />
-                  <Text style={styles.emptyButtonText}>Add Payment</Text>
-                </TouchableOpacity>
+                {authState.user?.role?.toUpperCase() === 'OWNER' && (
+                  <TouchableOpacity
+                    style={styles.emptyButton}
+                    onPress={handleAddPayment}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="add" size={20} color="#FFFFFF" />
+                    <Text style={styles.emptyButtonText}>Add Payment</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             ) : (
               <PaymentsList
                 payments={filteredPayments}
                 onPaymentPress={handlePaymentPress}
                 onDeletePayment={handleDeletePayment}
+                onVerifyPayment={handleVerifyPayment}
+                onCancelPayment={handleCancelPayment}
                 getStatusColor={getStatusColor}
+                userRole={authState.user?.role}
               />
             )}
           </View>
@@ -344,6 +396,61 @@ export default function Payments() {
                 >
                   <Text style={[styles.confirmationModalButtonText, styles.confirmationModalButtonTextWhite]}>
                     Delete
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Custom Confirmation Modal for Verify/Cancel */}
+        <Modal
+          visible={!!confirmAction}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setConfirmAction(null)}
+        >
+          <View style={styles.confirmationModalOverlay}>
+            <View style={styles.confirmationModalContent}>
+              <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                <View style={[
+                  styles.confirmationModalIconContainer,
+                  confirmAction?.type === 'verify' ? { backgroundColor: '#10B981' } : { backgroundColor: '#EF4444' }
+                ]}>
+                  <Ionicons 
+                    name={confirmAction?.type === 'verify' ? 'checkmark-circle' : 'close-circle'} 
+                    size={32} 
+                    color="white" 
+                  />
+                </View>
+                <Text style={styles.confirmationModalTitle}>
+                  {confirmAction?.type === 'verify' ? 'Verify Payment' : 'Cancel Payment'}
+                </Text>
+                <Text style={styles.confirmationModalDescription}>
+                  {confirmAction?.type === 'verify' 
+                    ? 'Are you sure you want to verify this payment?' 
+                    : 'Are you sure you want to cancel this payment? Once cancelled, this payment cannot be verified.'
+                  }
+                </Text>
+              </View>
+              <View style={styles.confirmationModalButtons}>
+                <TouchableOpacity
+                  style={[styles.confirmationModalButton, styles.confirmationModalButtonCancel]}
+                  onPress={() => setConfirmAction(null)}
+                >
+                  <Text style={[styles.confirmationModalButtonText, styles.confirmationModalButtonTextCancel]}>
+                    {confirmAction?.type === 'verify' ? 'Cancel' : 'No'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.confirmationModalButton,
+                    confirmAction?.type === 'verify' ? { backgroundColor: '#10B981' } : { backgroundColor: '#EF4444' }
+                  ]}
+                  onPress={confirmAction?.type === 'verify' ? executeVerifyPayment : executeCancelPayment}
+                >
+                  <Text style={styles.confirmationModalButtonText}>
+                    {confirmAction?.type === 'verify' ? 'Verify' : 'Yes, Cancel'}
                   </Text>
                 </TouchableOpacity>
               </View>

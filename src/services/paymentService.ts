@@ -18,6 +18,12 @@ export enum PaymentStatus {
   CANCELLED = 'CANCELLED'
 }
 
+export enum VerificationStatus {
+  PENDING = 'PENDING',
+  VERIFIED = 'VERIFIED',
+  REJECTED = 'REJECTED'
+}
+
 export interface Payment {
   id: number;
   paymentType: PaymentType;
@@ -34,6 +40,7 @@ export interface Payment {
   status: PaymentStatus;
   employeeId?: number;
   shopId: number;
+  verificationStatus?: VerificationStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -221,6 +228,23 @@ export class PaymentService {
         throw error;
       }
       throw new Error(error.response?.data?.message || 'Failed to cancel payment');
+    }
+  }
+
+  // Verify payment
+  static async verifyPayment(id: number): Promise<Payment> {
+    try {
+      const response = await apiService.post<ApiResponse<Payment>>(
+        `/payments/${id}/verify`,
+        {}
+      );
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Error verifying payment:', error);
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new Error(error.response?.data?.message || 'Failed to verify payment');
     }
   }
 

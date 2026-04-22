@@ -103,6 +103,29 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
+  verificationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  verificationIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  verificationText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  verifyButton: {
+    padding: 8,
+    marginRight: 4,
+  },
+  cancelButton: {
+    padding: 8,
+    marginRight: 4,
+  },
   deleteButton: {
     padding: 8,
   },
