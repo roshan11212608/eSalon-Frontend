@@ -41,7 +41,10 @@ export function AppButton({
       activeOpacity={0.97}
     >
       {loading ? (
-        <ActivityIndicator color="#ffffff" size="small" />
+        <ActivityIndicator 
+          color={variant === 'primary' ? '#ffffff' : '#f7b638'} 
+          size="small" 
+        />
       ) : (
         <Text style={textStyle}>{title}</Text>
       )}

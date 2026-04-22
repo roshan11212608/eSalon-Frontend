@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, RefreshControl, Modal } from 'react-native';
-import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { ActivityService } from '@/src/services/activityService';
@@ -108,11 +107,7 @@ export default function StaffActivityList() {
     fetchActivities(true);
   };
 
-  const handleBack = () => {
-    Haptics.impactAsync();
-    router.back();
-  };
-
+  
   const handleFilterPress = (filter: string) => {
     Haptics.impactAsync();
     if (filter === 'Date Wise') {
@@ -177,32 +172,7 @@ export default function StaffActivityList() {
     }
   };
 
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'SALE':
-        return 'cash';
-      case 'APPOINTMENT':
-        return 'calendar';
-      case 'EXPENSE':
-        return 'card';
-      default:
-        return 'document-text';
-    }
-  };
-
-  const getActivityColor = (type: string) => {
-    switch (type) {
-      case 'SALE':
-        return '#10B981';
-      case 'APPOINTMENT':
-        return '#6366F1';
-      case 'EXPENSE':
-        return '#EF4444';
-      default:
-        return '#6B7280';
-    }
-  };
-
+  
   const filterCategories = ['All', 'Today', 'Yesterday', 'This Week', 'Monthly', 'Date Wise'];
 
   const getFilterIcon = (filter: string) => {
@@ -234,13 +204,6 @@ export default function StaffActivityList() {
       onPress={() => Haptics.impactAsync()}
     >
       <View style={styles.activityHeader}>
-        <View style={[styles.activityIcon, { backgroundColor: getActivityColor(activity.type) }]}>
-          <Ionicons 
-            name={getActivityIcon(activity.type)} 
-            size={24} 
-            color="#FFFFFF" 
-          />
-        </View>
         <View style={styles.activityInfo}>
           <Text style={styles.activityType}>{activity.type}</Text>
           <Text style={styles.activityDate}>{formatDate(activity.createdAt)}</Text>
@@ -252,7 +215,6 @@ export default function StaffActivityList() {
       <Text style={styles.activityDescription}>{activity.description}</Text>
       {activity.notes && (
         <View style={styles.notesContainer}>
-          <Ionicons name="information-circle" size={14} color="#64748B" />
           <Text style={styles.activityNotes}>{activity.notes}</Text>
         </View>
       )}
@@ -271,15 +233,7 @@ export default function StaffActivityList() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={handleBack}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={24} color="#6366F1" />
-        </TouchableOpacity>
-        <Text style={styles.title}>My Activities</Text>
-        <View style={styles.addButton} />
+        <Text style={styles.title}>My Act<Text style={styles.titleAccent}>ivities</Text></Text>
       </View>
 
       <View style={styles.filterContainer}>

@@ -23,7 +23,7 @@ export default function StaffActivity() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.mainContainer}>
       <ScrollView 
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -31,33 +31,30 @@ export default function StaffActivity() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Activity</Text>
-          <TouchableOpacity style={styles.editButton} activeOpacity={0.7}>
-            <Ionicons name="calendar-outline" size={20} color="#1a1a1a" />
-          </TouchableOpacity>
+          <Text style={styles.title}>Act<Text style={styles.titleAccent}>ivity</Text></Text>
         </View>
 
         {/* Activity Card */}
-        <View style={styles.card}>
+        <View style={styles.mainContent}>
           {/* Menu Section */}
           <View style={styles.menuSection}>
             <TouchableOpacity style={styles.menuItem} onPress={() => handleActivityPress('Activity List')}>
               <View style={styles.menuItemContent}>
-                <View style={styles.menuIconContainer}>
-                  <Ionicons name="list" size={24} color="#780115" />
+                <View style={styles.menuIcon}>
+                  <Ionicons name="list" size={18} color="#f7b638" />
                 </View>
                 <Text style={styles.menuText}>Activity List</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#999999" />
+              <Ionicons name="chevron-forward" size={18} color="#c7c7c7" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem} onPress={() => handleActivityPress('Payments')}>
               <View style={styles.menuItemContent}>
-                <View style={styles.menuIconContainer}>
-                  <Ionicons name="card" size={24} color="#780115" />
+                <View style={styles.menuIcon}>
+                  <Ionicons name="card" size={18} color="#f7b638" />
                 </View>
                 <Text style={styles.menuText}>Payments</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#999999" />
+              <Ionicons name="chevron-forward" size={18} color="#c7c7c7" />
             </TouchableOpacity>
           </View>
         </View>

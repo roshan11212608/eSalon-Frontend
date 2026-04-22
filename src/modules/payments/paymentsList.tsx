@@ -12,27 +12,33 @@ interface PaymentsListProps {
   onCancelPayment: (id: string) => void;
   getStatusColor: (status: string) => string;
   userRole?: string;
+  loadingPayments?: Set<string>;
+  error?: string | null;
 }
 
-export default function PaymentsList({ payments, onPaymentPress, onDeletePayment, onVerifyPayment, onCancelPayment, getStatusColor, userRole }: PaymentsListProps) {
+export default function PaymentsList({ payments, onPaymentPress, onDeletePayment, onVerifyPayment, onCancelPayment, getStatusColor, userRole, loadingPayments = new Set(), error }: PaymentsListProps) {
 
-  const getPaymentTypeIcon = (paymentType: string) => {
+  const getPaymentTypeIcon = (paymentType: string, userRole?: string) => {
+    const isStaff = userRole?.toUpperCase() === 'STAFF';
+    
     switch (paymentType) {
       case 'customer_payment':
-        return 'arrow-down';
+        return isStaff ? 'arrow-down' : 'arrow-down'; // Green down arrow for both
       case 'staff_payout':
-        return 'arrow-up';
+        return isStaff ? 'arrow-down' : 'arrow-up'; // Green down for staff, red up for owner
       default:
         return 'card';
     }
   };
 
-  const getPaymentTypeColor = (paymentType: string) => {
+  const getPaymentTypeColor = (paymentType: string, userRole?: string) => {
+    const isStaff = userRole?.toUpperCase() === 'STAFF';
+    
     switch (paymentType) {
       case 'customer_payment':
-        return '#10B981';
+        return '#10B981'; // Green for both
       case 'staff_payout':
-        return '#EF4444';
+        return isStaff ? '#10B981' : '#EF4444'; // Green for staff, red for owner
       default:
         return '#6B7280';
     }
@@ -49,13 +55,13 @@ export default function PaymentsList({ payments, onPaymentPress, onDeletePayment
     }
   };
 
-  const getVerificationColor = (status?: string) => {
+  const getVerificationColor = (status: string) => {
     switch (status) {
-      case 'VERIFIED':
+      case 'verified':
         return '#10B981';
-      case 'PENDING':
+      case 'pending':
         return '#F59E0B';
-      case 'REJECTED':
+      case 'rejected':
         return '#EF4444';
       default:
         return '#6B7280';
@@ -64,17 +70,30 @@ export default function PaymentsList({ payments, onPaymentPress, onDeletePayment
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return date.toLocaleString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
+
+  const isLoading = (id: string) => loadingPayments.has(id);
 
   return (
     <View style={styles.paymentsList}>
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
       {payments.map((item) => (
         <View key={item.id} style={styles.paymentCard}>
           <View style={styles.paymentHeader}>
             <View style={styles.recipientInfo}>
-              <View style={[styles.recipientIcon, { backgroundColor: getPaymentTypeColor(item.paymentType) }]}>
-                <Ionicons name={getPaymentTypeIcon(item.paymentType)} size={20} color="#FFFFFF" />
+              <View style={[styles.recipientIcon, { backgroundColor: getPaymentTypeColor(item.paymentType, userRole) }]}>
+                <Ionicons name={getPaymentTypeIcon(item.paymentType, userRole)} size={20} color="#FFFFFF" />
               </View>
               <View style={styles.recipientDetails}>
                 <Text style={styles.recipientName}>{item.recipientName}</Text>
@@ -125,18 +144,25 @@ export default function PaymentsList({ payments, onPaymentPress, onDeletePayment
                     Cancelled
                   </Text>
                 </>
-              ) : item.verificationStatus === 'PENDING' ? (
+              ) : item.status === 'verified' ? (
                 <>
-                  <View style={[styles.statusIndicator, { backgroundColor: getVerificationColor(item.verificationStatus) }]} />
-                  <Text style={[styles.statusText, { color: getVerificationColor(item.verificationStatus) }]}>
-                    Verification Pending
+                  <View style={[styles.statusIndicator, { backgroundColor: getVerificationColor(item.status) }]} />
+                  <Text style={[styles.statusText, { color: getVerificationColor(item.status) }]}>
+                    Verified
                   </Text>
                 </>
-              ) : item.verificationStatus === 'VERIFIED' ? (
+              ) : item.status === 'pending' ? (
                 <>
-                  <View style={[styles.statusIndicator, { backgroundColor: getVerificationColor(item.verificationStatus) }]} />
-                  <Text style={[styles.statusText, { color: getVerificationColor(item.verificationStatus) }]}>
-                    Verified
+                  <View style={[styles.statusIndicator, { backgroundColor: getVerificationColor(item.status) }]} />
+                  <Text style={[styles.statusText, { color: getVerificationColor(item.status) }]}>
+                    Pending
+                  </Text>
+                </>
+              ) : item.status === 'rejected' ? (
+                <>
+                  <View style={[styles.statusIndicator, { backgroundColor: getVerificationColor(item.status) }]} />
+                  <Text style={[styles.statusText, { color: getVerificationColor(item.status) }]}>
+                    Rejected
                   </Text>
                 </>
               ) : (
@@ -148,33 +174,49 @@ export default function PaymentsList({ payments, onPaymentPress, onDeletePayment
                 </>
               )}
             </View>
-                        {userRole?.toUpperCase() === 'STAFF' && item.verificationStatus === 'PENDING' && item.status !== 'cancelled' && (
+            {userRole?.toUpperCase() === 'STAFF' && item.status === 'pending' && (
               <TouchableOpacity
-                style={styles.verifyButton}
-                onPress={() => onVerifyPayment(item.id)}
+                style={[styles.verifyButton, isLoading(item.id) && styles.disabledButton]}
+                onPress={() => !isLoading(item.id) && onVerifyPayment(item.id)}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 activeOpacity={0.7}
+                disabled={isLoading(item.id)}
               >
-                <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+                <Ionicons 
+                  name={isLoading(item.id) ? "hourglass-outline" : "checkmark-circle"} 
+                  size={18} 
+                  color={isLoading(item.id) ? "#9CA3AF" : "#10B981"} 
+                />
               </TouchableOpacity>
             )}
-            {userRole?.toUpperCase() === 'STAFF' && item.status !== 'cancelled' && item.verificationStatus !== 'VERIFIED' && (
+            {userRole?.toUpperCase() === 'STAFF' && item.status !== 'cancelled' && item.status !== 'verified' && (
               <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => onCancelPayment(item.id)}
+                style={[styles.cancelButton, isLoading(item.id) && styles.disabledButton]}
+                onPress={() => !isLoading(item.id) && onCancelPayment(item.id)}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 activeOpacity={0.7}
+                disabled={isLoading(item.id)}
               >
-                <Ionicons name="close-circle" size={18} color="#EF4444" />
+                <Ionicons 
+                  name={isLoading(item.id) ? "hourglass-outline" : "close-circle"} 
+                  size={18} 
+                  color={isLoading(item.id) ? "#9CA3AF" : "#EF4444"} 
+                />
               </TouchableOpacity>
             )}
-            {userRole?.toUpperCase() === 'OWNER' && item.verificationStatus !== 'VERIFIED' && (
+            {userRole?.toUpperCase() === 'OWNER' && item.status !== 'verified' && (
               <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => onDeletePayment(item.id)}
+                style={[styles.deleteButton, isLoading(item.id) && styles.disabledButton]}
+                onPress={() => !isLoading(item.id) && onDeletePayment(item.id)}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                activeOpacity={0.7}
+                disabled={isLoading(item.id)}
               >
-                <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                <Ionicons 
+                  name={isLoading(item.id) ? "hourglass-outline" : "trash-outline"} 
+                  size={18} 
+                  color={isLoading(item.id) ? "#9CA3AF" : "#EF4444"} 
+                />
               </TouchableOpacity>
             )}
           </View>

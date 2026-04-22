@@ -212,4 +212,20 @@ export const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 16,
   },
+  errorContainer: {
+    backgroundColor: '#FEE2E2',
+    padding: 12,
+    marginBottom: 16,
+    borderRadius: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#EF4444',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#B91C1C',
+    fontWeight: '600',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
 });

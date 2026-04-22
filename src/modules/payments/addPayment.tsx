@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { styles } from './styles/addPayment.styles';
 import { useAuthStore } from '@/src/shared/hooks/useAuthStore';
-import PaymentService, { PaymentType, PaymentMethod } from '@/src/services/paymentService';
+import { PaymentService, PaymentType, PaymentMethod } from '@/src/services/paymentService';
 import EmployeeService from '@/src/services/employee/EmployeeService';
+import Loader from '@/src/shared/components/Loader';
+import FullScreenLoader from '@/src/shared/components/FullScreenLoader';
 
 export default function AddPayment() {
   const router = useRouter();
@@ -14,12 +16,11 @@ export default function AddPayment() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessageText, setSuccessMessageText] = useState('');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [selectedStaff, setSelectedStaff] = useState<string | null>(null);
-  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
+  const [selectedStaff, setSelectedStaff] = useState<{ id: string; name: string; commissionRate: number } | null>(null);
   const [showStaffDropdown, setShowStaffDropdown] = useState(false);
   const [staffList, setStaffList] = useState<{ id: string; name: string; commissionRate: number }[]>([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [showFullScreenLoader, setShowFullScreenLoader] = useState(false);
   const [newPayment, setNewPayment] = useState({
     amount: '',
     commissionRate: '',
@@ -78,7 +79,7 @@ export default function AddPayment() {
     } finally {
       setLoadingStaff(false);
     }
-  }, [authState.user?.shopId, authState.user]);
+  }, [authState.user?.shopId]);
 
   useEffect(() => {
     fetchStaff();
@@ -95,7 +96,6 @@ export default function AddPayment() {
         remarks: '',
       });
       setSelectedStaff(null);
-      setSelectedStaffId(null);
       setShowSuccessMessage(false);
       setShowConfirmDialog(false);
     }, [])
@@ -115,8 +115,7 @@ export default function AddPayment() {
   };
 
   const handleStaffSelect = (staff: { id: string; name: string; commissionRate: number }) => {
-    setSelectedStaff(staff.name);
-    setSelectedStaffId(staff.id);
+    setSelectedStaff(staff);
     setNewPayment({ ...newPayment, commissionRate: staff.commissionRate.toString() });
     setShowStaffDropdown(false);
   };
@@ -145,47 +144,49 @@ export default function AddPayment() {
 
   const confirmPayment = async () => {
     setShowConfirmDialog(false);
-    setIsLoading(true);
+    setShowFullScreenLoader(true);
     let paymentCreated = false;
     
     try {
       const commission = calculateCommission();
       
+      if (!commission) {
+        Alert.alert('Error', 'Invalid commission calculation');
+        return;
+      }
+      
       console.log('Creating payment with data:', {
         paymentType: PaymentType.STAFF_PAYOUT,
-        recipientName: selectedStaff,
+        recipientName: selectedStaff?.name,
         recipientType: 'employee',
         amount: parseFloat(newPayment.amount),
         commissionRate: parseFloat(newPayment.commissionRate),
         paymentMethod: newPayment.paymentMethod,
-        category: 'Commission',
+        category: 'Staff Payout',
         description: newPayment.remarks,
-        paymentDate: newPayment.date,
-        employeeId: selectedStaffId ? parseInt(selectedStaffId) : undefined,
+        employeeId: selectedStaff?.id,
       });
-      
-      console.log('Calling PaymentService.createPayment...');
-      const result = await PaymentService.createPayment({
+
+      const payment = await PaymentService.createPayment({
         paymentType: PaymentType.STAFF_PAYOUT,
-        recipientName: selectedStaff || '',
+        recipientName: selectedStaff!.name,
         recipientType: 'employee',
         amount: parseFloat(newPayment.amount),
         commissionRate: parseFloat(newPayment.commissionRate),
         paymentMethod: newPayment.paymentMethod,
-        category: 'Commission',
+        category: 'Staff Payout',
         description: newPayment.remarks,
-        paymentDate: newPayment.date,
-        employeeId: selectedStaffId ? parseInt(selectedStaffId) : undefined,
+        employeeId: parseInt(selectedStaff!.id),
       });
-      
-      console.log('Payment created successfully:', result);
+
+      console.log('Payment created successfully:', payment);
       paymentCreated = true;
     } catch (error: any) {
       console.error('Error creating payment:', error);
       console.error('Error details:', JSON.stringify(error, null, 2));
       Alert.alert('Error', error.message || 'Failed to create payment');
     } finally {
-      setIsLoading(false);
+      setShowFullScreenLoader(false);
     }
     
     if (paymentCreated) {
@@ -232,17 +233,16 @@ export default function AddPayment() {
           <Text style={styles.formLabel}>Select Staff *</Text>
           {loadingStaff ? (
             <View style={styles.dropdownButton}>
-              <ActivityIndicator size="small" color="#007AFF" />
-              <Text style={styles.dropdownPlaceholder}>Loading staff...</Text>
+              <Loader text="Loading staff..." size="small" />
             </View>
           ) : (
             <TouchableOpacity
               style={styles.dropdownButton}
               onPress={() => setShowStaffDropdown(true)}
-              disabled={isLoading || staffList.length === 0}
+              disabled={showFullScreenLoader || staffList.length === 0}
             >
               <Text style={selectedStaff ? styles.dropdownText : styles.dropdownPlaceholder}>
-                {staffList.length === 0 ? 'No staff available' : (selectedStaff || 'Select staff member')}
+                {staffList.length === 0 ? 'No staff available' : (selectedStaff?.name || 'Select staff member')}
               </Text>
               {staffList.length > 0 && <Ionicons name="chevron-down" size={20} color="#6B7280" />}
             </TouchableOpacity>
@@ -291,10 +291,10 @@ export default function AddPayment() {
                   styles.methodButton,
                   newPayment.paymentMethod === method && styles.methodButtonActive,
                 ]}
-                onPress={() => setNewPayment({ ...newPayment, paymentMethod: method as any })}
+                onPress={() => setNewPayment({ ...newPayment, paymentMethod: method })}
               >
                 <Ionicons
-                  name={method === 'cash' ? 'cash' : 'globe'}
+                  name={method === PaymentMethod.CASH ? 'cash' : 'globe'}
                   size={16}
                   color={newPayment.paymentMethod === method ? '#FFFFFF' : '#6B7280'}
                   style={styles.methodButtonIcon}
@@ -327,18 +327,18 @@ export default function AddPayment() {
             placeholderTextColor="#9CA3AF"
           />
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleSavePayment} disabled={isLoading}>
-            {isLoading ? (
+          <TouchableOpacity style={styles.saveButton} onPress={handleSavePayment} disabled={showFullScreenLoader}>
+            {showFullScreenLoader ? (
               <Text style={styles.saveButtonText}>Saving...</Text>
             ) : (
               <>
-                <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" style={styles.saveButtonIcon} />
+                <Ionicons name="save" size={20} color="#FFFFFF" />
                 <Text style={styles.saveButtonText}>Save Payment</Text>
               </>
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel} disabled={isLoading}>
+          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel} disabled={showFullScreenLoader}>
             <Text style={styles.cancelButtonText}>Cancel</Text>
           </TouchableOpacity>
         </View>
@@ -399,7 +399,7 @@ export default function AddPayment() {
             <Ionicons name="information-circle" size={48} color="#007AFF" />
             <Text style={styles.confirmModalTitle}>Confirm Payment</Text>
             <Text style={styles.confirmModalText}>
-              Are you sure you want to pay ₹{newPayment.amount} to {selectedStaff || 'this staff'}?
+              Are you sure you want to pay ₹{newPayment.amount} to {selectedStaff?.name || 'this staff'}?
             </Text>
             <Text style={styles.confirmModalSubtext}>
               Commission: {newPayment.commissionRate}%
@@ -421,6 +421,8 @@ export default function AddPayment() {
           </View>
         </View>
       </Modal>
+
+      <FullScreenLoader visible={showFullScreenLoader} />
     </View>
   );
 }

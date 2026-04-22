@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, Modal, ActivityIndicator, RefreshControl, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Modal, RefreshControl, TextInput } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { styles } from './styles/payments.styles';
 import PaymentsList from './paymentsList';
 import { useAuthStore } from '@/src/shared/hooks/useAuthStore';
-import PaymentService, { PaymentStatus } from '@/src/services/paymentService';
+import { PaymentService, PaymentStatus } from '@/src/services/paymentService';
+import Loader from '@/src/shared/components/Loader';
+import FullScreenLoader from '@/src/shared/components/FullScreenLoader';
+import SkeletonLoader from '@/src/shared/components/SkeletonLoader';
 
 export interface Payment {
   id: string;
@@ -21,8 +24,7 @@ export interface Payment {
   category: string;
   description: string;
   date: string;
-  status: 'pending' | 'completed' | 'cancelled';
-  verificationStatus?: 'PENDING' | 'VERIFIED' | 'REJECTED';
+  status: 'pending' | 'verified' | 'completed' | 'cancelled' | 'rejected';
   createdAt: string;
   itemType: 'payment';
 }
@@ -40,6 +42,7 @@ export default function Payments() {
   const [searchText, setSearchText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showFullScreenLoader, setShowFullScreenLoader] = useState(false);
 
   const authState = useAuthStore();
 
@@ -84,8 +87,7 @@ export default function Payments() {
         category: p.category,
         description: p.description || '',
         date: p.paymentDate.split('T')[0],
-        status: p.status.toLowerCase() as 'pending' | 'completed' | 'cancelled',
-        verificationStatus: p.verificationStatus as 'PENDING' | 'VERIFIED' | 'REJECTED',
+        status: p.status.toLowerCase() as 'pending' | 'verified' | 'completed' | 'cancelled' | 'rejected',
         createdAt: p.createdAt,
         commissionRate: p.commissionRate ? (typeof p.commissionRate === 'number' ? p.commissionRate : parseFloat(String(p.commissionRate))) : undefined,
         commissionAmount: p.commissionAmount ? (typeof p.commissionAmount === 'number' ? p.commissionAmount : parseFloat(String(p.commissionAmount))) : undefined,
@@ -157,34 +159,38 @@ export default function Payments() {
   const executeVerifyPayment = async () => {
     if (!confirmAction) return;
     try {
+      setShowFullScreenLoader(true);
       await PaymentService.verifyPayment(parseInt(confirmAction.id));
-      setPayments(payments.map(p => p.id === confirmAction.id ? { ...p, verificationStatus: 'VERIFIED' } : p));
+      setPayments(payments.map(p => p.id === confirmAction.id ? { ...p, status: 'verified' } : p));
       setSuccessMessage('Payment verified successfully');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
-    } catch (error) {
+    } catch {
       setSuccessMessage('Failed to verify payment');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } finally {
       setConfirmAction(null);
+      setShowFullScreenLoader(false);
     }
   };
 
   const executeCancelPayment = async () => {
     if (!confirmAction) return;
     try {
+      setShowFullScreenLoader(true);
       await PaymentService.cancelPayment(parseInt(confirmAction.id));
       setPayments(payments.map(p => p.id === confirmAction.id ? { ...p, status: 'cancelled' } : p));
       setSuccessMessage('Payment cancelled successfully');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
-    } catch (error) {
+    } catch {
       setSuccessMessage('Failed to cancel payment');
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } finally {
       setConfirmAction(null);
+      setShowFullScreenLoader(false);
     }
   };
 
@@ -211,28 +217,36 @@ export default function Payments() {
     let matchesFilter = true;
     if (selectedFilter === 'All') {
       matchesFilter = true;
-    } else if (selectedFilter === 'Customer Payments') {
-      matchesFilter = item.paymentType === 'customer_payment';
     } else if (selectedFilter === 'Staff Payouts') {
       matchesFilter = item.paymentType === 'staff_payout';
+    } else if (selectedFilter === 'Verified') {
+      matchesFilter = item.status === 'verified';
     } else if (selectedFilter === 'Pending') {
-      matchesFilter = item.status === PaymentStatus.PENDING.toLowerCase();
+      matchesFilter = item.status === 'pending';
+    } else if (selectedFilter === 'Cancelled') {
+      matchesFilter = item.status === 'cancelled';
     } else if (selectedFilter === 'Completed') {
-      matchesFilter = item.status === PaymentStatus.COMPLETED.toLowerCase();
+      matchesFilter = item.status === 'completed';
     }
     
     return matchesSearch && matchesFilter;
   });
 
-  const filterCategories = ['All', 'Customer Payments', 'Staff Payouts', 'Pending', 'Completed'];
+  const filterCategories = authState.user?.role?.toUpperCase() === 'OWNER' 
+    ? ['All', 'Verified', 'Pending', 'Cancelled']
+    : ['All', 'Verified', 'Pending', 'Cancelled'];
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
         return '#10B981';
+      case 'verified':
+        return '#10B981';
       case 'pending':
         return '#F59E0B';
       case 'cancelled':
+        return '#EF4444';
+      case 'rejected':
         return '#EF4444';
       default:
         return '#6B7280';
@@ -242,10 +256,7 @@ export default function Payments() {
   if (isLoading) {
     return (
       <View style={styles.mainContainer}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#f7b638" />
-          <Text style={styles.loadingText}>Loading payments...</Text>
-        </View>
+        <Loader text="Loading payments..." />
       </View>
     );
   }
@@ -319,7 +330,11 @@ export default function Payments() {
         >
           {/* Main Content Container */}
           <View style={styles.mainContent}>
-            {filteredPayments.length === 0 ? (
+          {refreshing && filteredPayments.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <SkeletonLoader count={5} />
+              </View>
+            ) : filteredPayments.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <View style={styles.emptyIconContainer}>
                   <Ionicons name="card-outline" size={72} color="#CBD5E1" />
@@ -457,6 +472,8 @@ export default function Payments() {
             </View>
           </View>
         </Modal>
+
+        <FullScreenLoader visible={showFullScreenLoader} />
       </View>
     </>
   );

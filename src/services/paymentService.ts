@@ -14,13 +14,9 @@ export enum PaymentMethod {
 
 export enum PaymentStatus {
   PENDING = 'PENDING',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
-}
-
-export enum VerificationStatus {
-  PENDING = 'PENDING',
   VERIFIED = 'VERIFIED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
   REJECTED = 'REJECTED'
 }
 
@@ -40,7 +36,10 @@ export interface Payment {
   status: PaymentStatus;
   employeeId?: number;
   shopId: number;
-  verificationStatus?: VerificationStatus;
+  verifiedBy?: number;
+  verifiedAt?: string;
+  cancelledBy?: number;
+  cancelledAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -64,6 +63,16 @@ export interface ApiResponse<T> {
   data: T;
   statusCode: number;
   timestamp: string;
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
 }
 
 export class PaymentService {
@@ -258,6 +267,40 @@ export class PaymentService {
         throw error;
       }
       throw new Error(error.response?.data?.message || 'Failed to delete payment');
+    }
+  }
+
+  // Get paginated payments
+  static async getPaymentsPaginated(
+    page: number = 0,
+    size: number = 20,
+    search?: string,
+    status?: string
+  ): Promise<PaginatedResponse<Payment>> {
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        size: size.toString(),
+      });
+      
+      if (search) {
+        params.append('search', search);
+      }
+      
+      if (status) {
+        params.append('status', status);
+      }
+      
+      const response = await apiService.get<ApiResponse<PaginatedResponse<Payment>>>(
+        `/api/payments?${params.toString()}`
+      );
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Error fetching paginated payments:', error);
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new Error(error.response?.data?.message || 'Failed to fetch payments');
     }
   }
 }
