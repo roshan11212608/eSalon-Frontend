@@ -32,7 +32,7 @@ export default function OwnerDashboardScreen() {
         console.log('Fetching shopId for userId:', userId);
 
         // Fetch user profile from backend using correct endpoint
-        const response = await fetch(`http://127.0.0.1:8080/api/profile/${userId}`, {
+        const response = await fetch(`https://wicked-seas-scream.loca.lt/api/profile/${userId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',

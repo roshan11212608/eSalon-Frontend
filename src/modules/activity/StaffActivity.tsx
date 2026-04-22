@@ -7,9 +7,9 @@ import { styles } from './styles/activity.styles';
 export default function StaffActivity() {
   const handleActivityPress = (activityType: string) => {
     if (activityType === 'Activity List') {
-      router.push('/activity-list' as any);
+      router.push('/(staff-tabs)/activity-list' as any);
     } else if (activityType === 'Payments') {
-      router.push('/payments' as any);
+      router.push('/(staff-tabs)/payments' as any);
     } else {
       Alert.alert(
         'Activity Navigation',

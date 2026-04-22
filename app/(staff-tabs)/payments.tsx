@@ -1,6 +1,6 @@
 import React from 'react';
-import StaffPayments from '@/src/modules/activity/StaffPayments';
+import Payments from '@/src/modules/payments/Payments';
 
 export default function StaffPaymentsScreen() {
-  return <StaffPayments />;
+  return <Payments />;
 }

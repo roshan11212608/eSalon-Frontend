@@ -14,7 +14,6 @@ export default function Services() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
   const [searchText, setSearchText] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
 
   // Get shopId from auth store using hook for reactive updates
   const authState = useAuthStore();
@@ -48,11 +47,8 @@ export default function Services() {
   const filteredServices = services.filter(service => {
     const matchesSearch = service.name.toLowerCase().includes(searchText.toLowerCase()) ||
                          service.description.toLowerCase().includes(searchText.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || service.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    return matchesSearch;
   });
-
-  const categories = ['All', 'Hair Services', 'Skin Care', 'Massage'];
 
   const handleAddService = () => {
     Haptics.notificationAsync();
@@ -92,88 +88,64 @@ export default function Services() {
 
   return (
     <>
-      <ScrollView 
-        style={shopServicesStyles.container}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={shopServicesStyles.scrollContent}
-      >
-      <View style={shopServicesStyles.header}>
-        <Text style={shopServicesStyles.title}>Shop Services</Text>
-        <TouchableOpacity style={shopServicesStyles.addButton} onPress={handleAddService}>
-          <Ionicons name="add" size={20} color="#1a1a1a" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={shopServicesStyles.searchSection}>
-        <View style={shopServicesStyles.searchBar}>
-          <Ionicons name="search" size={20} color="#6B7280" />
-          <TextInput
-            style={shopServicesStyles.searchInput}
-            placeholder="Search services..."
-            value={searchText}
-            onChangeText={setSearchText}
-            placeholderTextColor="#9CA3AF"
-          />
+      <View style={shopServicesStyles.mainContainer}>
+        <View style={shopServicesStyles.header}>
+          <Text style={shopServicesStyles.title}>Shop<Text style={shopServicesStyles.titleAccent}> Services</Text></Text>
+          <TouchableOpacity style={shopServicesStyles.addButton} onPress={handleAddService}>
+            <Ionicons name="add" size={20} color="#1a1a1a" />
+          </TouchableOpacity>
         </View>
-      </View>
 
-      <View style={shopServicesStyles.categoryFilter}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {categories.map(category => (
-            <TouchableOpacity
-              key={category}
-              style={[
-                shopServicesStyles.categoryChip,
-                selectedCategory === category && shopServicesStyles.categoryChipActive
-              ]}
-              onPress={() => setSelectedCategory(category)}
-            >
-              <Text style={[
-                shopServicesStyles.categoryChipText,
-                selectedCategory === category && shopServicesStyles.categoryChipTextActive
-              ]}>
-                {category}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+        <View style={shopServicesStyles.searchSection}>
+          <View style={shopServicesStyles.searchBar}>
+            <Ionicons name="search" size={20} color="#6B7280" />
+            <TextInput
+              style={shopServicesStyles.searchInput}
+              placeholder="Search services..."
+              value={searchText}
+              onChangeText={setSearchText}
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+        </View>
 
-      <View style={shopServicesStyles.servicesList}>
-        {filteredServices.map(service => (
-          <View key={service.id} style={shopServicesStyles.serviceCard}>
-            <View style={shopServicesStyles.serviceHeader}>
-              <View style={shopServicesStyles.serviceIconContainer}>
-                <View style={[shopServicesStyles.serviceIcon, { backgroundColor: '#007AFF' }]}>
-                  <Ionicons name={service.icon as any} size={20} color="#FFFFFF" />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={shopServicesStyles.scrollContent}
+        >
+          <View style={shopServicesStyles.servicesList}>
+            {/* Table Header */}
+            <View style={shopServicesStyles.tableHeader}>
+              <Text style={[shopServicesStyles.tableHeaderText, shopServicesStyles.colSerial]}>S.N</Text>
+              <Text style={[shopServicesStyles.tableHeaderText, shopServicesStyles.colName]}>Services Name</Text>
+              <Text style={[shopServicesStyles.tableHeaderText, shopServicesStyles.colAmount]}>Amount</Text>
+              <Text style={[shopServicesStyles.tableHeaderText, shopServicesStyles.colAction]}>Action</Text>
+            </View>
+
+            {filteredServices.map((service, index) => (
+              <View key={service.id} style={shopServicesStyles.serviceCard}>
+                <Text style={shopServicesStyles.serviceSerial}>{index + 1})</Text>
+                <View style={shopServicesStyles.serviceInfo}>
+                  <Text style={shopServicesStyles.serviceName}>{service.name}</Text>
+                </View>
+                <View style={shopServicesStyles.servicePricing}>
+                  <Text style={shopServicesStyles.servicePrice}>Rs {service.price}</Text>
+                </View>
+                <View style={shopServicesStyles.colAction}>
+                  <TouchableOpacity
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      handleDeleteService(service.id);
+                    }}
+                  >
+                    <Ionicons name="trash" size={18} color="#DC2626" />
+                  </TouchableOpacity>
                 </View>
               </View>
-              <View style={shopServicesStyles.serviceInfo}>
-                <Text style={shopServicesStyles.serviceName}>{service.name}</Text>
-                <Text style={shopServicesStyles.serviceCategory}>{service.category}</Text>
-                <Text style={shopServicesStyles.serviceDescription}>{service.description}</Text>
-              </View>
-              <View style={shopServicesStyles.servicePricing}>
-                <Text style={shopServicesStyles.servicePrice}>Rs {service.price}</Text>
-                <Text style={shopServicesStyles.serviceDuration}>{service.durationMinutes} min</Text>
-              </View>
-            </View>
-
-            <View style={shopServicesStyles.serviceFooter}>
-              <TouchableOpacity
-                style={shopServicesStyles.deleteButton}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  handleDeleteService(service.id);
-                }}
-              >
-                <Ionicons name="trash" size={16} color="#DC2626" />
-              </TouchableOpacity>
-            </View>
+            ))}
           </View>
-        ))}
+        </ScrollView>
       </View>
-    </ScrollView>
 
       <Modal
         visible={showDeleteModal}

@@ -1,4 +1,5 @@
-import { apiRequest, API_ENDPOINTS } from './api/apiClient';
+import { apiService } from './apiService';
+import { API_ENDPOINTS } from '../config/api';
 
 export interface ShopService {
   id?: number;
@@ -14,7 +15,7 @@ export interface ShopService {
 class ShopServicesService {
   async getAllServices(): Promise<ShopService[]> {
     try {
-      const response = await apiRequest.get<{ data: ShopService[] }>(API_ENDPOINTS.SHOP_SERVICE.BASE);
+      const response = await apiService.get<{ data: ShopService[] }>(API_ENDPOINTS.SHOP_SERVICE.BASE);
       return response.data.data || [];
     } catch (error) {
       console.error('Error fetching shop services:', error);
@@ -24,7 +25,7 @@ class ShopServicesService {
 
   async getServiceById(id: number): Promise<ShopService> {
     try {
-      const response = await apiRequest.get<{ data: ShopService }>(API_ENDPOINTS.SHOP_SERVICE.BY_ID(id));
+      const response = await apiService.get<{ data: ShopService }>(API_ENDPOINTS.SHOP_SERVICE.BY_ID(id));
       return response.data.data;
     } catch (error) {
       console.error('Error fetching shop service by ID:', error);
@@ -34,7 +35,7 @@ class ShopServicesService {
 
   async getServicesByShop(shopId: string | number): Promise<ShopService[]> {
     try {
-      const response = await apiRequest.get<{ data: ShopService[] }>(`/shop-services/shop/${shopId}`);
+      const response = await apiService.get<{ data: ShopService[] }>(`/shop-services/shop/${shopId}`);
       return response.data.data || [];
     } catch (error) {
       console.error('Error fetching shop services by shop:', error);
@@ -45,7 +46,7 @@ class ShopServicesService {
   async getServicesByShopId(shopId: string): Promise<ShopService[]> {
     try {
       console.log('Fetching services from endpoint:', `/shop-services/shop-id/${shopId}`);
-      const response = await apiRequest.get<{ data: ShopService[] }>(`/shop-services/shop-id/${shopId}`);
+      const response = await apiService.get<{ data: ShopService[] }>(`/shop-services/shop-id/${shopId}`);
       console.log('API response:', response.data);
       return response.data.data || [];
     } catch (error) {
@@ -58,7 +59,7 @@ class ShopServicesService {
     try {
       console.log('Creating service at endpoint:', API_ENDPOINTS.SHOP_SERVICE.BASE);
       console.log('Request payload:', JSON.stringify(service, null, 2));
-      const response = await apiRequest.post<{ data: ShopService }>(API_ENDPOINTS.SHOP_SERVICE.BASE, service);
+      const response = await apiService.post<{ data: ShopService }>(API_ENDPOINTS.SHOP_SERVICE.BASE, service);
       console.log('Response:', response.data);
       return response.data.data;
     } catch (error) {
@@ -69,7 +70,7 @@ class ShopServicesService {
 
   async updateService(id: number, service: ShopService): Promise<ShopService> {
     try {
-      const response = await apiRequest.put<{ data: ShopService }>(API_ENDPOINTS.SHOP_SERVICE.BY_ID(id), service);
+      const response = await apiService.put<{ data: ShopService }>(API_ENDPOINTS.SHOP_SERVICE.BY_ID(id), service);
       return response.data.data;
     } catch (error) {
       console.error('Error updating shop service:', error);
@@ -79,7 +80,7 @@ class ShopServicesService {
 
   async deleteService(id: number): Promise<void> {
     try {
-      await apiRequest.delete(API_ENDPOINTS.SHOP_SERVICE.BY_ID(id));
+      await apiService.delete(API_ENDPOINTS.SHOP_SERVICE.BY_ID(id));
     } catch (error) {
       console.error('Error deleting shop service:', error);
       throw error;

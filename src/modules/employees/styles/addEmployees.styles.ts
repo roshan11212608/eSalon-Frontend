@@ -28,6 +28,16 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
+  fixedHeader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: '#f5f5f5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e5e5',
+  },
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
@@ -49,6 +59,14 @@ export const styles = StyleSheet.create({
   modalScroll: {
     flex: 1,
     padding: 20,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },
+  titleAccent: {
+    color: '#f7b638',
   },
   formLabel: {
     fontSize: 14,

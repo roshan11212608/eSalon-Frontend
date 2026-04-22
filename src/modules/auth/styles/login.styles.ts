@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#780115',
+    backgroundColor: '#ffffff',
   },
 
   scrollView: {
@@ -14,62 +14,31 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
   },
 
-  // Logo Section
-  logoSection: {
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingBottom: 40,
-  },
-
-  logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    backgroundColor: '#f7b638',
+  contentContainer: {
+    flex: 1,
+    padding: 24,
     justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#f7b638',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-
-  appName: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 2,
-    marginBottom: 8,
-  },
-
-  tagline: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-    letterSpacing: 0.5,
-  },
-
-  // Login Card
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 32,
-    marginHorizontal: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 24,
-    elevation: 12,
   },
 
   // Title
+  titleContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+
   title: {
     fontSize: 28,
-    fontWeight: '600',
-    color: '#780115',
-    marginBottom: 24,
-    letterSpacing: 0.3,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+
+  titleUnderline: {
+    width: 60,
+    height: 3,
+    backgroundColor: '#f7b638',
+    borderRadius: 2,
   },
 
   // Error Message
@@ -86,47 +55,59 @@ export const styles = StyleSheet.create({
 
   errorText: {
     fontSize: 14,
-    color: '#dc2626',
+    color: '#780115',
     marginLeft: 8,
     flex: 1,
   },
 
   // Input Container
   inputContainer: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
 
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#dddddd',
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    minHeight: 52,
+    borderWidth: 0,
+    borderBottomWidth: 2,
+    borderColor: '#e0e0e0',
+    borderRadius: 0,
+    backgroundColor: 'transparent',
+    paddingHorizontal: 0,
+    paddingVertical: 8,
+    minHeight: 36,
   },
 
   inputWrapperFocused: {
     borderColor: '#f7b638',
-    borderWidth: 2,
   },
 
   inputIcon: {
-    marginRight: 12,
+    marginRight: 10,
+    backgroundColor: '#fff9e6',
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     color: '#1a1a1a',
     paddingVertical: 0,
   },
 
   passwordToggle: {
-    padding: 8,
-    marginLeft: 8,
+    padding: 6,
+    marginLeft: 6,
+    backgroundColor: '#fff9e6',
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // Remember me and forgot password
@@ -154,8 +135,8 @@ export const styles = StyleSheet.create({
   },
 
   checkboxChecked: {
-    backgroundColor: '#780115',
-    borderColor: '#780115',
+    backgroundColor: '#f7b638',
+    borderColor: '#f7b638',
   },
 
   checkboxInner: {
@@ -176,7 +157,7 @@ export const styles = StyleSheet.create({
 
   forgotPasswordText: {
     fontSize: 14,
-    color: '#780115',
+    color: '#f7b638',
     fontWeight: '500',
   },
 
@@ -204,18 +185,36 @@ export const styles = StyleSheet.create({
 
   // Create account
   createAccountContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 8,
   },
 
   createAccountText: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#666666',
   },
 
   createAccountLink: {
-    fontSize: 14,
-    color: '#780115',
+    fontSize: 15,
+    color: '#f7b638',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+
+  createAccountButton: {
+    borderWidth: 2,
+    borderColor: '#f7b638',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+
+  createAccountButtonText: {
+    fontSize: 16,
+    color: '#f7b638',
     fontWeight: '600',
   },
 });

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView, Text } from 'react-native';
+import { View, TextInput, TouchableOpacity, Text } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -32,6 +32,9 @@ export default function Login() {
         password,
       });
 
+      console.log('Login response from backend:', response);
+      console.log('employeeId in response:', response.employeeId);
+
       await StorageService.setToken(response.token);
       await StorageService.setRole(response.role.toLowerCase() as 'owner' | 'staff' | 'admin');
       
@@ -43,6 +46,7 @@ export default function Login() {
         role: response.role,
         phone: '',
         shopId: response.shopId?.toString(),
+        employeeId: response.employeeId?.toString(),
       };
       await StorageService.setUserData(userData);
 
@@ -64,29 +68,13 @@ export default function Login() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Logo Section */}
-        <View style={styles.logoSection}>
-          <View style={styles.logoContainer}>
-            <Ionicons name="cut" size={40} color="#f7b638" />
-          </View>
-          <Text style={styles.appName}>eSalon</Text>
-          <Text style={styles.tagline}>Premium Salon Management</Text>
-        </View>
-
-        {/* Login Card */}
-        <View style={styles.card}>
+    <View style={styles.container}>
+      <View style={styles.contentContainer}>
           {/* Title */}
-          <Text style={styles.title}>Welcome Back</Text>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Access Your Salon</Text>
+            <View style={styles.titleUnderline} />
+          </View>
 
           {/* Error Message */}
           {errorMessage ? (
@@ -99,12 +87,13 @@ export default function Login() {
           {/* Email Input */}
           <View style={styles.inputContainer}>
             <View style={[styles.inputWrapper, emailFocused && styles.inputWrapperFocused]}>
-              <Ionicons 
-                name="mail-outline" 
-                size={20} 
-                color={emailFocused ? '#f7b638' : '#999999'} 
-                style={styles.inputIcon}
-              />
+              <View style={styles.inputIcon}>
+                <Ionicons 
+                  name="mail-outline" 
+                  size={18} 
+                  color={emailFocused ? '#f7b638' : '#999999'} 
+                />
+              </View>
               <TextInput
                 style={styles.input}
                 value={email}
@@ -123,12 +112,13 @@ export default function Login() {
           {/* Password Input */}
           <View style={styles.inputContainer}>
             <View style={[styles.inputWrapper, passwordFocused && styles.inputWrapperFocused]}>
-              <Ionicons 
-                name="lock-closed-outline" 
-                size={20} 
-                color={passwordFocused ? '#f7b638' : '#999999'} 
-                style={styles.inputIcon}
-              />
+              <View style={styles.inputIcon}>
+                <Ionicons 
+                  name="lock-closed-outline" 
+                  size={18} 
+                  color={passwordFocused ? '#f7b638' : '#999999'} 
+                />
+              </View>
               <TextInput
                 style={styles.input}
                 value={password}
@@ -147,7 +137,7 @@ export default function Login() {
               >
                 <Ionicons 
                   name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                  size={20} 
+                  size={18} 
                   color="#999999" 
                 />
               </TouchableOpacity>
@@ -180,19 +170,19 @@ export default function Login() {
             activeOpacity={0.8}
           >
             <Text style={styles.loginButtonText}>
-              {isLoading ? 'Logging in...' : 'Login'}
+              {isLoading ? 'Signing in...' : 'Sign in'}
             </Text>
           </TouchableOpacity>
 
           {/* Create Account */}
-          <View style={styles.createAccountContainer}>
-            <Text style={styles.createAccountText}>Don&apos;t have an account? </Text>
-            <TouchableOpacity onPress={() => router.push('/auth/register')}>
-              <Text style={styles.createAccountLink}>Create Account</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity 
+            style={styles.createAccountButton}
+            onPress={() => router.push('/auth/register')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.createAccountButtonText}>Create Account</Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
 }

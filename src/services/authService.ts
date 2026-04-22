@@ -1,5 +1,6 @@
 // Authentication service
-import { apiRequest, API_ENDPOINTS } from './api/apiClient';
+import { apiService, ApiError } from './apiService';
+import { API_ENDPOINTS } from '../config/api';
 import { StorageService, type UserRole } from './storage/storageService';
 
 export interface LoginCredentials {
@@ -37,6 +38,7 @@ export interface AuthResponseData {
   shopId?: number;
   shopName?: string;
   shopAddress?: string;
+  employeeId?: number;
 }
 
 export interface ApiResponse<T> {
@@ -54,7 +56,7 @@ export class AuthService {
     console.log('Trying login for:', credentials.email);
     
     try {
-      const response = await apiRequest.post<ApiResponse<AuthResponseData>>(API_ENDPOINTS.AUTH.LOGIN, {
+      const response = await apiService.post<ApiResponse<AuthResponseData>>(API_ENDPOINTS.AUTH.LOGIN, {
         email: credentials.email,
         password: credentials.password,
       });
@@ -62,9 +64,10 @@ export class AuthService {
       const { data } = response.data;
       console.log('Login successful:', data);
       
-      // Store auth data
+      // Store auth data with refresh token
       await StorageService.setAuthData({
         token: data.token,
+        refreshToken: data.refreshToken,
         role: data.role,
         isFirstTime: false,
       });
@@ -86,6 +89,9 @@ export class AuthService {
       return data;
     } catch (error: any) {
       console.error('Login failed:', error);
+      if (error instanceof ApiError) {
+        throw error;
+      }
       throw new Error(error.response?.data?.message || 'Login failed');
     }
   }
@@ -93,13 +99,14 @@ export class AuthService {
   // Register new user
   static async register(userData: RegisterData): Promise<AuthResponseData> {
     try {
-      const response = await apiRequest.post<ApiResponse<AuthResponseData>>(API_ENDPOINTS.AUTH.REGISTER, userData);
+      const response = await apiService.post<ApiResponse<AuthResponseData>>(API_ENDPOINTS.AUTH.REGISTER, userData);
       
       const { data } = response.data;
       
-      // Store auth data
+      // Store auth data with refresh token
       await StorageService.setAuthData({
         token: data.token,
+        refreshToken: data.refreshToken,
         role: data.role,
         isFirstTime: false,
       });
@@ -107,6 +114,9 @@ export class AuthService {
       return data;
     } catch (error: any) {
       console.error('Registration error:', error);
+      if (error instanceof ApiError) {
+        throw error;
+      }
       throw new Error(error.response?.data?.message || 'Registration failed');
     }
   }
@@ -124,7 +134,7 @@ export class AuthService {
   // Refresh token
   static async refreshToken(refreshToken: string): Promise<string> {
     try {
-      const response = await apiRequest.post<ApiResponse<AuthResponseData>>(API_ENDPOINTS.AUTH.REFRESH, null, {
+      const response = await apiService.post<ApiResponse<AuthResponseData>>(API_ENDPOINTS.AUTH.REFRESH, null, {
         headers: {
           'X-Refresh-Token': refreshToken,
         },
@@ -137,6 +147,9 @@ export class AuthService {
       return data.token;
     } catch (error: any) {
       console.error('Token refresh error:', error);
+      if (error instanceof ApiError) {
+        throw error;
+      }
       throw new Error(error.response?.data?.message || 'Token refresh failed');
     }
   }
@@ -144,7 +157,7 @@ export class AuthService {
   // Health check
   static async healthCheck(): Promise<boolean> {
     try {
-      const response = await apiRequest.get<ApiResponse<string>>(API_ENDPOINTS.AUTH.HEALTH);
+      const response = await apiService.get<ApiResponse<string>>(API_ENDPOINTS.AUTH.HEALTH);
       return response.data.success;
     } catch (error) {
       console.error('Health check error:', error);
@@ -165,10 +178,13 @@ export class AuthService {
   // Send OTP
   static async sendOtp(request: OtpRequest): Promise<string> {
     try {
-      const response = await apiRequest.post<ApiResponse<string>>(API_ENDPOINTS.AUTH.SEND_OTP, request);
+      const response = await apiService.post<ApiResponse<string>>(API_ENDPOINTS.AUTH.SEND_OTP, request);
       return response.data.data;
     } catch (error: any) {
       console.error('Send OTP error:', error);
+      if (error instanceof ApiError) {
+        throw error;
+      }
       throw new Error(error.response?.data?.message || 'Failed to send OTP');
     }
   }
@@ -176,10 +192,13 @@ export class AuthService {
   // Verify OTP
   static async verifyOtp(request: VerifyOtpRequest): Promise<string> {
     try {
-      const response = await apiRequest.post<ApiResponse<string>>(API_ENDPOINTS.AUTH.VERIFY_OTP, request);
+      const response = await apiService.post<ApiResponse<string>>(API_ENDPOINTS.AUTH.VERIFY_OTP, request);
       return response.data.data;
     } catch (error: any) {
       console.error('Verify OTP error:', error);
+      if (error instanceof ApiError) {
+        throw error;
+      }
       throw new Error(error.response?.data?.message || 'Failed to verify OTP');
     }
   }

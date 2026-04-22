@@ -84,11 +84,11 @@ export default function ProfileManagement() {
     <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.menuItemContent}>
         <View style={styles.menuIcon}>
-          <Ionicons name={icon} size={24} color="#780115" />
+          <Ionicons name={icon} size={18} color="#f7b638" />
         </View>
         <Text style={styles.menuText}>{title}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={20} color="#999999" />
+      <Ionicons name="chevron-forward" size={18} color="#c7c7c7" />
     </TouchableOpacity>
   );
 
@@ -101,79 +101,88 @@ export default function ProfileManagement() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Profile</Text>
-          <TouchableOpacity style={styles.editButton} onPress={handleEditProfile} activeOpacity={0.7}>
-            <Ionicons name="create-outline" size={20} color="#1a1a1a" />
-          </TouchableOpacity>
+          <Text style={styles.title}>Pro<Text style={styles.titleAccent}>file</Text></Text>
         </View>
 
-        {/* Profile Card */}
-        <View style={styles.card}>
+        {/* Main Content Container */}
+        <View style={styles.mainContent}>
+          {/* Profile Card */}
           <View style={styles.profileCard}>
-            <View style={styles.avatarContainer}>
-              {profile?.avatarUrl ? (
-                <Image source={{ uri: profile.avatarUrl }} style={styles.avatarImage} />
-              ) : (
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{getInitials(profile?.name || 'U')}</Text>
+              <View style={styles.avatarContainer}>
+                {profile?.avatarUrl ? (
+                  <Image source={{ uri: profile.avatarUrl }} style={styles.avatarImage} />
+                ) : (
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>{getInitials(profile?.name || 'U')}</Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.profileDetails}>
+              <Text style={styles.name}>{profile?.name || 'Unknown User'}</Text>
+              <Text style={styles.email}>{profile?.email || 'No email'}</Text>
+              
+              <View style={styles.badgesRow}>
+                {profile?.shopId && (
+                  <View style={styles.shopIdBadge}>
+                    <Ionicons name="pricetag" size={12} color="#f7b638" />
+                    <Text style={styles.shopIdText}>Shop ID: {profile.shopId}</Text>
+                  </View>
+                )}
+
+                {authState.role && (
+                  <View style={styles.roleBadge}>
+                    <Ionicons name="person" size={12} color="#ffffff" />
+                    <Text style={styles.roleText}>{authState.role.charAt(0).toUpperCase() + authState.role.slice(1)}</Text>
+                  </View>
+                )}
+
+                {(profile?.customUserId || authState.user?.userId) && (
+                  <View style={styles.userIdBadge}>
+                    <Ionicons name="id-card" size={12} color="#6366f1" />
+                    <Text style={styles.userIdText}>User ID: {profile?.customUserId || authState.user?.userId}</Text>
+                  </View>
+                )}
+
+                {profile?.shopName && (
+                  <View style={styles.shopBadge}>
+                    <Ionicons name="storefront" size={14} color="#ec4899" />
+                    <Text style={styles.shopBadgeText}>{profile.shopName}</Text>
+                  </View>
+                )}
+              </View>
+              
+              {profile?.shopAddress && (
+                <View style={styles.shopAddressContainer}>
+                  <Ionicons name="location" size={12} color="#f7b638" />
+                  <Text style={styles.shopAddressText}>{profile.shopAddress}</Text>
                 </View>
               )}
+              
+              {profile?.bio && (
+                <View style={styles.bioContainer}>
+                  <Text style={styles.bio}>{profile.bio}</Text>
+                </View>
+              )}
+              </View>
             </View>
-            <Text style={styles.name}>{profile?.name || 'Unknown User'}</Text>
-            <Text style={styles.email}>{profile?.email || 'No email'}</Text>
-            
-            {profile?.shopId && (
-              <View style={styles.shopIdBadge}>
-                <Ionicons name="pricetag" size={14} color="#780115" />
-                <Text style={styles.shopIdText}>Shop ID: {profile.shopId}</Text>
-              </View>
-            )}
-            
-            {authState.role && (
-              <View style={styles.roleBadge}>
-                <Ionicons name="person" size={14} color="#780115" />
-                <Text style={styles.roleText}>{authState.role.charAt(0).toUpperCase() + authState.role.slice(1)}</Text>
-              </View>
-            )}
-            
-            {(profile?.customUserId || authState.user?.userId) && (
-              <View style={styles.userIdBadge}>
-                <Ionicons name="id-card" size={14} color="#780115" />
-                <Text style={styles.userIdText}>User ID: {profile?.customUserId || authState.user?.userId}</Text>
-              </View>
-            )}
-            
-            {profile?.shopName && (
-              <View style={styles.shopBadge}>
-                <Ionicons name="storefront" size={16} color="#780115" />
-                <Text style={styles.shopBadgeText}>{profile.shopName}</Text>
-              </View>
-            )}
-            
-            {profile?.shopAddress && (
-              <View style={styles.shopAddressContainer}>
-                <Ionicons name="location" size={14} color="#666666" />
-                <Text style={styles.shopAddressText}>{profile.shopAddress}</Text>
-              </View>
-            )}
-            
-            {profile?.bio && (
-              <View style={styles.bioContainer}>
-                <Text style={styles.bio}>{profile.bio}</Text>
-              </View>
-            )}
-          </View>
           
+          {/* Menu Section */}
           <View style={styles.menuSection}>
-            <MenuItem icon="shield-checkmark-outline" title="Privacy & Security" onPress={handlePrivacySecurity} />
-            <MenuItem icon="help-circle-outline" title="Help & Support" onPress={handleHelpSupport} />
-          </View>
-          
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.7}>
-            <Ionicons name="log-out-outline" size={24} color="#1a1a1a" />
-            <Text style={styles.logoutText}>Sign Out</Text>
-          </TouchableOpacity>
+              <MenuItem icon="person-outline" title="Edit Profile" onPress={handleEditProfile} />
+              <MenuItem icon="shield-checkmark-outline" title="Privacy & Security" onPress={handlePrivacySecurity} />
+              <MenuItem icon="help-circle-outline" title="Help & Support" onPress={handleHelpSupport} />
+              
+              {/* Logout Button */}
+              <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.7}>
+                  <View style={styles.logoutIcon}>
+                    <Ionicons name="log-out-outline" size={18} color="#ef4444" />
+                  </View>
+                  <Text style={styles.logoutText}>Sign Out</Text>
+                  <Ionicons name="chevron-forward" size={18} color="#c7c7c7" />
+                </TouchableOpacity>
+            </View>
         </View>
+        
       </ScrollView>
       
       <ConfirmationModal

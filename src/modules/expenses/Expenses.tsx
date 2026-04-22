@@ -86,14 +86,14 @@ export default function Expenses({ expenses, onAddExpense, onToggleExpenseStatus
   return (
     <>
       <ScrollView 
-        style={expensesStyles.container}
+        style={expensesStyles.mainContainer}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={expensesStyles.scrollContent}
       >
         <View style={expensesStyles.header}>
-          <Text style={expensesStyles.title}>Expenses</Text>
+          <Text style={expensesStyles.title}>Expens<Text style={expensesStyles.titleAccent}>es</Text></Text>
           <TouchableOpacity style={expensesStyles.addButton} onPress={handleAddExpense}>
-            <Ionicons name="add" size={20} color="#FFFFFF" />
+            <Ionicons name="add" size={20} color="#1a1a1a" />
           </TouchableOpacity>
         </View>
 

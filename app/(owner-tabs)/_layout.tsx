@@ -1,13 +1,13 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text, StyleSheet } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function OwnerTabsLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>eSalon</Text>
-      </View>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Tabs
         screenOptions={{
           headerShown: false,
@@ -17,9 +17,9 @@ export default function OwnerTabsLayout() {
             backgroundColor: '#FFFFFF',
             borderTopWidth: 1,
             borderTopColor: '#E5E5E5',
-            paddingBottom: 8,
-            paddingTop: 8,
-            height: 70,
+            paddingBottom: 4,
+            paddingTop: 4,
+            height: 25 + insets.bottom,
             justifyContent: 'space-around',
           },
           tabBarLabelStyle: {
@@ -84,7 +84,77 @@ export default function OwnerTabsLayout() {
           }}
         />
         
-        {/* Hide individual service screens from tabs */}
+        {/* Hide these screens from tab bar */}
+        <Tabs.Screen
+          name="employees"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="employees/index"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="employees/addEmployees"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="employees/employeesList"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="expenses"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="expenses/index"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="payments"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="payments/index"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="payments/addPayment"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="payments/paymentsList"
+          options={{
+            href: null
+          }}
+        />
+        
         <Tabs.Screen
           name="shopServices"
           options={{
@@ -93,13 +163,34 @@ export default function OwnerTabsLayout() {
         />
         
         <Tabs.Screen
-          name="employees"
+          name="shopServices/index"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="shopServices/addNewServices"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="activity/list"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="activity/new"
           options={{
             href: null
           }}
         />
       </Tabs>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -110,11 +201,10 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#780115',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginHorizontal: 12,
+    marginBottom: 4,
     borderRadius: 16,
     shadowColor: '#f7b638',
     shadowOffset: { width: 0, height: 10 },
@@ -126,10 +216,10 @@ const styles = StyleSheet.create({
     borderColor: '#f7b638',
   },
   title: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '900',
     color: '#f7b638',
-    letterSpacing: 4,
+    letterSpacing: 2,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 4,

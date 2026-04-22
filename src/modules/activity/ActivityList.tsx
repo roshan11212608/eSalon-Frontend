@@ -14,6 +14,8 @@ interface Activity {
   amount: number;
   notes?: string;
   createdAt: string;
+  employeeName?: string;
+  employeeId?: number;
 }
 
 export default function ActivityList() {
@@ -38,7 +40,11 @@ export default function ActivityList() {
       }
 
       const shopResponse = await ActivityService.getActivitiesByShop(Number(shopId));
-      setActivities(shopResponse || []);
+      // Sort activities by createdAt in descending order (latest first)
+      const sortedActivities = (shopResponse || []).sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      setActivities(sortedActivities);
     } catch (error) {
       console.error('Error fetching activities:', error);
       Alert.alert('Error', 'Failed to load activities');
@@ -56,11 +62,6 @@ export default function ActivityList() {
     Haptics.impactAsync();
     setRefreshing(true);
     fetchActivities();
-  };
-
-  const handleBack = () => {
-    Haptics.impactAsync();
-    router.back();
   };
 
   const handleAddActivity = () => {
@@ -131,19 +132,6 @@ export default function ActivityList() {
       return `${diffDays} days ago`;
     } else {
       return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-  };
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'SALE':
-        return 'cash';
-      case 'APPOINTMENT':
-        return 'calendar';
-      case 'EXPENSE':
-        return 'card';
-      default:
-        return 'document-text';
     }
   };
 
@@ -220,26 +208,44 @@ export default function ActivityList() {
       onPress={() => Haptics.impactAsync()}
     >
       <View style={styles.activityHeader}>
-        <View style={[styles.activityIcon, { backgroundColor: getActivityColor(activity.type) }]}>
+        <View style={[styles.activityIcon, { backgroundColor: getActivityColor(activity.type), overflow: 'visible' }]}>
           <Ionicons 
-            name={getActivityIcon(activity.type)} 
-            size={24} 
+            name="checkmark-circle" 
+            size={32} 
             color="#FFFFFF" 
           />
         </View>
         <View style={styles.activityInfo}>
-          <Text style={styles.activityType}>{activity.type}</Text>
-          <Text style={styles.activityDate}>{formatDate(activity.createdAt)}</Text>
+          {activity.employeeName && activity.employeeId ? (
+            <>
+              <Text style={styles.activityType}>{activity.employeeName}</Text>
+              <Text style={styles.activityDate}>ID: {activity.employeeId}</Text>
+              <Text style={styles.activityDate}>{formatDate(activity.createdAt)}</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.activityType}>
+                {activity.description?.match(/Employee:\s*([^,]+)/)?.[1]
+                  ? activity.description.match(/Employee:\s*([^,]+)/)?.[1]?.trim()
+                  : activity.type}
+              </Text>
+              <Text style={styles.activityDate}>{formatDate(activity.createdAt)}</Text>
+            </>
+          )}
         </View>
         <View style={styles.amountContainer}>
-          <Text style={styles.activityAmount}>${activity.amount.toFixed(2)}</Text>
+          <Text style={styles.activityAmount}>₹{activity.amount.toFixed(2)}</Text>
         </View>
       </View>
-      <Text style={styles.activityDescription}>{activity.description}</Text>
+      {!(activity.employeeName && activity.employeeId) && (
+        <Text style={styles.activityDescription}>{activity.description}</Text>
+      )}
       {activity.notes && (
         <View style={styles.notesContainer}>
           <Ionicons name="information-circle" size={14} color="#64748B" />
-          <Text style={styles.activityNotes}>{activity.notes}</Text>
+          <Text style={styles.activityNotes}>
+            {activity.notes?.split('|').filter((part: string) => !part.trim().startsWith('Employee:')).join(' | ')}
+          </Text>
         </View>
       )}
     </TouchableOpacity>
@@ -256,24 +262,19 @@ export default function ActivityList() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      {/* Fixed Header */}
+      <View style={styles.fixedHeader}>
+        <Text style={styles.title}><Text style={styles.titleAccent}>Activity</Text> List</Text>
         <TouchableOpacity
-          style={styles.backButton}
-          onPress={handleBack}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={24} color="#6366F1" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Activities</Text>
-        <TouchableOpacity
-          style={styles.addButton}
+          style={styles.headerAddButton}
           onPress={handleAddActivity}
           activeOpacity={0.7}
         >
-          <Ionicons name="add" size={24} color="#1a1a1a" />
+          <Ionicons name="add" size={24} color="#f7b638" />
         </TouchableOpacity>
       </View>
 
+      {/* Filter Section - Fixed below header */}
       <View style={styles.filterContainer}>
         <ScrollView
           horizontal
@@ -306,14 +307,16 @@ export default function ActivityList() {
         </ScrollView>
       </View>
 
+      {/* Scrollable Content */}
       <ScrollView
         style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
         refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
+          <RefreshControl
+            refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#6366F1']}
-            tintColor="#6366F1"
+            colors={['#f7b638']}
+            tintColor="#f7b638"
           />
         }
         showsVerticalScrollIndicator={false}

@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    backgroundColor: '#780115',
+    backgroundColor: '#f5f5f5',
   },
 
   scrollView: {
@@ -17,209 +17,214 @@ export const styles = StyleSheet.create({
   // Header
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 20,
-    marginHorizontal: 20,
-    marginTop: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    paddingVertical: 12,
+    backgroundColor: '#f5f5f5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e5e5',
   },
 
   title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#780115',
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    letterSpacing: 1,
   },
 
-  editButton: {
-    backgroundColor: '#f7b638',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#f7b638',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+  titleAccent: {
+    color: '#f7b638',
   },
 
-  // Card Section
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 32,
-    marginHorizontal: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 24,
-    elevation: 12,
-    marginBottom: 40,
+  // Main Content Container
+  mainContent: {
+    backgroundColor: '#ffffff',
   },
 
   // Profile Card
   profileCard: {
+    flexDirection: 'column',
     alignItems: 'center',
-    marginBottom: 24,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
 
   avatarContainer: {
-    marginBottom: 16,
+    marginBottom: 12,
+    position: 'relative',
   },
 
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#780115',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#f7b638',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#780115',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    borderWidth: 3,
+    borderColor: '#ffffff',
+    shadowColor: '#f7b638',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
 
   avatarImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 3,
+    borderColor: '#ffffff',
   },
 
   avatarText: {
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#ffffff',
+  },
+
+  profileDetails: {
+    alignItems: 'center',
   },
 
   name: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#780115',
-    marginBottom: 4,
+    color: '#1a1a1a',
+    marginBottom: 2,
   },
 
   email: {
-    fontSize: 15,
-    color: '#666666',
+    fontSize: 13,
+    color: '#888888',
     marginBottom: 12,
+  },
+
+  badgesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 6,
   },
 
   shopIdBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(247, 182, 56, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginTop: 8,
+    backgroundColor: '#fff9e6',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#f7b638',
   },
 
   shopIdText: {
-    fontSize: 13,
-    color: '#780115',
+    fontSize: 11,
+    color: '#1a1a1a',
     fontWeight: '600',
-    marginLeft: 6,
+    marginLeft: 4,
   },
 
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(120, 1, 21, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginTop: 8,
+    backgroundColor: '#f7b638',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
 
   roleText: {
-    fontSize: 13,
-    color: '#780115',
-    fontWeight: '600',
-    marginLeft: 6,
+    fontSize: 11,
+    color: '#ffffff',
+    fontWeight: '700',
+    marginLeft: 4,
   },
 
   userIdBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(120, 1, 21, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginTop: 8,
+    backgroundColor: '#e0e7ff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#6366f1',
   },
 
   userIdText: {
-    fontSize: 13,
-    color: '#780115',
+    fontSize: 11,
+    color: '#6366f1',
     fontWeight: '600',
-    marginLeft: 6,
+    marginLeft: 4,
   },
 
   shopBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(247, 182, 56, 0.1)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginTop: 8,
+    backgroundColor: '#fce7f3',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ec4899',
   },
 
   shopBadgeText: {
-    fontSize: 14,
-    color: '#780115',
+    fontSize: 11,
+    color: '#ec4899',
     fontWeight: '600',
-    marginLeft: 6,
+    marginLeft: 4,
   },
 
   shopAddressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: 8,
+    backgroundColor: '#f5f5f5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
 
   shopAddressText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#666666',
     marginLeft: 6,
   },
 
   bioContainer: {
-    marginTop: 16,
-    paddingHorizontal: 8,
+    marginTop: 8,
+    backgroundColor: '#f5f5f5',
+    padding: 10,
+    borderRadius: 8,
   },
 
   bio: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#666666',
+    lineHeight: 16,
     textAlign: 'center',
-    lineHeight: 20,
   },
 
   // Menu Section
   menuSection: {
-    marginBottom: 24,
+    backgroundColor: '#ffffff',
   },
 
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#e5e5e5',
   },
 
   menuItemContent: {
@@ -229,41 +234,45 @@ export const styles = StyleSheet.create({
   },
 
   menuIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: 'rgba(247, 182, 56, 0.1)',
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: '#fff9e6',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 12,
   },
 
   menuText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#1a1a1a',
     fontWeight: '500',
   },
 
   // Logout Button
   logoutButton: {
-    backgroundColor: '#f7b638',
-    padding: 18,
-    borderRadius: 16,
-    alignItems: 'center',
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#ffffff',
+  },
+
+  logoutIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: '#fef2f2',
     justifyContent: 'center',
-    shadowColor: '#f7b638',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    alignItems: 'center',
+    marginRight: 12,
   },
 
   logoutText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#ef4444',
   },
 
   // Loading & Error States
@@ -271,33 +280,34 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#780115',
+    backgroundColor: '#f5f5f5',
   },
 
   loadingText: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: '#666666',
     marginTop: 12,
+    fontWeight: '400',
   },
 
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#780115',
+    backgroundColor: '#f5f5f5',
     padding: 32,
   },
 
   errorText: {
     fontSize: 18,
-    color: '#FFFFFF',
+    color: '#1a1a1a',
     fontWeight: '600',
     marginTop: 16,
   },
 
   errorSubtext: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: '#666666',
     marginTop: 8,
     textAlign: 'center',
   },

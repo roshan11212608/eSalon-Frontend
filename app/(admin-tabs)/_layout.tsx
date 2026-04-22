@@ -1,19 +1,13 @@
 import { Tabs } from 'expo-router';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AdminLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Ionicons name="shield-checkmark" size={28} color="#FFFFFF" />
-          <View style={styles.logoTextContainer}>
-            <Text style={styles.logo}>eSalon</Text>
-            <Text style={styles.adminTag}>Admin</Text>
-          </View>
-        </View>
-      </View>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Tabs
         screenOptions={{
           headerShown: false,
@@ -28,6 +22,8 @@ export default function AdminLayout() {
             shadowOffset: { width: 0, height: -2 },
             shadowOpacity: 0.1,
             shadowRadius: 4,
+            paddingBottom: insets.bottom,
+            height: 25 + insets.bottom,
           },
           tabBarLabelStyle: {
             fontSize: 12,
@@ -54,7 +50,7 @@ export default function AdminLayout() {
           }}
         />
       </Tabs>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -65,8 +61,8 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#780115',
-    paddingHorizontal: 32,
-    paddingVertical: 28,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { styles } from './styles/newActivity.styles';
 import EmployeeService from '@/src/services/employee/EmployeeService';
 import ShopServicesService from '@/src/services/shopServicesService';
@@ -8,6 +10,9 @@ import { ActivityService } from '@/src/services/activityService';
 import { useAuthStore } from '@/src/shared/hooks/useAuthStore';
 
 export default function NewAcitivity() {
+  const router = useRouter();
+  const authState = useAuthStore();
+
   const getCurrentDateTime = () => {
     const now = new Date();
     const day = String(now.getDate()).padStart(2, '0');
@@ -31,6 +36,9 @@ export default function NewAcitivity() {
     paymentMethod: 'cash',
   });
 
+  const [errors, setErrors] = useState<Partial<Record<keyof typeof formData, string>>>({});
+  const [touched, setTouched] = useState<Partial<Record<keyof typeof formData, boolean>>>({});
+
   const [dropdownStates, setDropdownStates] = useState({
     employee: false,
     service: false,
@@ -45,8 +53,40 @@ export default function NewAcitivity() {
   const [isCreating, setIsCreating] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Get auth state using hook for reactive updates
-  const authState = useAuthStore();
+  const validateField = (field: keyof typeof formData, value: any) => {
+    let error = '';
+
+    switch (field) {
+      case 'employee':
+        if (!value) error = 'Employee is required';
+        break;
+      case 'selectedServices':
+        if (!value || value.length === 0) error = 'At least one service is required';
+        break;
+      case 'paidAmount':
+        if (!value || value.trim() === '') error = 'Paid amount is required';
+        else if (isNaN(parseFloat(value)) || parseFloat(value) <= 0) error = 'Invalid amount';
+        break;
+      case 'paymentMethod':
+        if (!value) error = 'Payment method is required';
+        break;
+    }
+
+    setErrors(prev => ({ ...prev, [field]: error }));
+    return error;
+  };
+
+  const handleFieldChange = (field: keyof typeof formData, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (touched[field]) {
+      validateField(field, value);
+    }
+  };
+
+  const handleFieldBlur = (field: keyof typeof formData, value: any) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    validateField(field, value);
+  };
 
   // Update customer info time every minute
   useEffect(() => {
@@ -144,7 +184,7 @@ export default function NewAcitivity() {
       const serviceOptions = data
         .filter(service => service.isActive !== false) // Show active services
         .map(service => ({
-          label: `${service.name} - $${service.price}`,
+          label: `${service.name} - ₹${service.price}`,
           value: service.id?.toString() || '',
           price: service.price
         }));
@@ -182,21 +222,6 @@ export default function NewAcitivity() {
     }));
   };
 
-  const selectDropdownOption = (field: string, value: string, dropdownName: string) => {
-    handleInputChange(field, value);
-    setDropdownStates(prev => ({
-      ...prev,
-      [dropdownName]: false
-    }));
-  };
-
-  const getSelectedServicePrice = () => {
-    return formData.selectedServices.reduce((total, serviceValue) => {
-      const service = services.find(s => s.value === serviceValue);
-      return total + (service ? service.price : 0);
-    }, 0);
-  };
-
   const getSelectedLabel = (options: any[], value: string) => {
     const option = options.find(opt => opt.value === value);
     return option ? option.label : 'Select...';
@@ -212,29 +237,60 @@ export default function NewAcitivity() {
   };
 
   const toggleServiceSelection = (serviceValue: string) => {
-    setFormData(prev => ({
-      ...prev,
-      selectedServices: prev.selectedServices.includes(serviceValue)
-        ? prev.selectedServices.filter(s => s !== serviceValue)
-        : [...prev.selectedServices, serviceValue]
-    }));
+    const newSelectedServices = formData.selectedServices.includes(serviceValue)
+      ? formData.selectedServices.filter(s => s !== serviceValue)
+      : [...formData.selectedServices, serviceValue];
+    handleFieldChange('selectedServices', newSelectedServices);
+  };
+
+  const getSelectedServicePrice = () => {
+    return formData.selectedServices.reduce((total, serviceValue) => {
+      const service = services.find(s => s.value === serviceValue);
+      return total + (service ? service.price : 0);
+    }, 0);
+  };
+
+  const selectDropdownOption = (field: string, value: string, dropdownKey: string) => {
+    handleFieldChange(field as keyof typeof formData, value);
+    setDropdownStates(prev => ({ ...prev, [dropdownKey]: false }));
   };
 
   const handleSubmit = async () => {
-    console.log('handleSubmit called');
-    console.log('Form data:', formData);
-    
-    if (!formData.employee || formData.selectedServices.length === 0 || !formData.paidAmount || !formData.customerInfo) {
-      console.log('Validation failed');
-      console.log('Employee:', formData.employee);
-      console.log('Services:', formData.selectedServices);
-      console.log('Paid Amount:', formData.paidAmount);
-      console.log('Customer Info:', formData.customerInfo);
-      Alert.alert('Error', 'Please fill in all required fields');
+    Haptics.notificationAsync();
+
+    // Validate all fields
+    const newErrors: Partial<Record<keyof typeof formData, string>> = {};
+    let hasError = false;
+
+    const employeeError = validateField('employee', formData.employee);
+    if (employeeError) {
+      newErrors.employee = employeeError;
+      hasError = true;
+    }
+
+    const servicesError = validateField('selectedServices', formData.selectedServices);
+    if (servicesError) {
+      newErrors.selectedServices = servicesError;
+      hasError = true;
+    }
+
+    const amountError = validateField('paidAmount', formData.paidAmount);
+    if (amountError) {
+      newErrors.paidAmount = amountError;
+      hasError = true;
+    }
+
+    const paymentMethodError = validateField('paymentMethod', formData.paymentMethod);
+    if (paymentMethodError) {
+      newErrors.paymentMethod = paymentMethodError;
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      setTouched({ employee: true, selectedServices: true, paidAmount: true, paymentMethod: true });
       return;
     }
-    
-    console.log('Validation passed');
 
     // Get shopId from auth state
     const shopId = authState.user?.shopId;
@@ -302,27 +358,24 @@ export default function NewAcitivity() {
 };
 
 const handleCancel = () => {
-  Alert.alert(
-    'Cancel',
-    'Are you sure you want to cancel?',
-    [
-      { text: 'No', style: 'cancel' },
-      { text: 'Yes', onPress: () => router.back() }
-    ]
-  );
+  Haptics.notificationAsync();
+  router.back();
 };
 
 return (
   <View style={styles.container}>
-    <ScrollView 
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent}
+    {/* Fixed Header */}
+    <View style={styles.fixedHeader}>
+      <Text style={styles.title}>New <Text style={styles.titleAccent}>Activity</Text></Text>
+    </View>
+
+    <ScrollView
+      style={styles.scrollView}
+      contentContainerStyle={styles.scrollViewContent}
       keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
     >
-      <View style={styles.header}>
-        <Text style={styles.title}>New Activity</Text>
-        <Text style={styles.subtitle}>Create a new activity record</Text>
-      </View>
+      <View style={styles.contentContainer}>
 
       <View style={styles.form}>
         {/* Employee Selection */}
@@ -333,15 +386,21 @@ return (
               <ActivityIndicator size="small" color="#007AFF" />
             </View>
           ) : (
-            <TouchableOpacity 
-              style={styles.dropdownTrigger}
-              onPress={() => toggleDropdown('employee')}
+            <TouchableOpacity
+              style={[styles.dropdownTrigger, touched.employee && errors.employee && styles.inputWrapperError]}
+              onPress={() => {
+                toggleDropdown('employee');
+                handleFieldBlur('employee', formData.employee);
+              }}
             >
               <Text style={styles.dropdownTriggerText}>
                 {employees.length === 0 ? 'No employees available' : getSelectedLabel(employees, formData.employee)}
               </Text>
               <Text style={styles.dropdownArrow}>{'\u25bc'}</Text>
             </TouchableOpacity>
+          )}
+          {touched.employee && errors.employee && (
+            <Text style={styles.errorText}>{errors.employee}</Text>
           )}
           {dropdownStates.employee && !isLoadingEmployees && employees.length > 0 && (
             <View style={styles.dropdownContainer}>
@@ -386,15 +445,21 @@ return (
               <ActivityIndicator size="small" color="#007AFF" />
             </View>
           ) : (
-            <TouchableOpacity 
-              style={styles.dropdownTrigger}
-              onPress={() => toggleDropdown('service')}
+            <TouchableOpacity
+              style={[styles.dropdownTrigger, touched.selectedServices && errors.selectedServices && styles.inputWrapperError]}
+              onPress={() => {
+                toggleDropdown('service');
+                handleFieldBlur('selectedServices', formData.selectedServices);
+              }}
             >
               <Text style={styles.dropdownTriggerText}>
                 {services.length === 0 ? 'No services available' : getSelectedServicesLabel()}
               </Text>
               <Text style={styles.dropdownArrow}>{'\u25bc'}</Text>
             </TouchableOpacity>
+          )}
+          {touched.selectedServices && errors.selectedServices && (
+            <Text style={styles.errorText}>{errors.selectedServices}</Text>
           )}
           {dropdownStates.service && !isLoadingServices && services.length > 0 && (
             <View style={styles.dropdownContainer}>
@@ -435,33 +500,43 @@ return (
           {/* ... */}
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Service Price:</Text>
-            <Text style={styles.summaryValue}>${getSelectedServicePrice()}</Text>
+            <Text style={styles.summaryValue}>₹{getSelectedServicePrice()}</Text>
           </View>
           
           <View style={styles.formGroup}>
             <Text style={styles.label}>Paid Amount *</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, touched.paidAmount && errors.paidAmount && styles.inputWrapperError]}
               value={formData.paidAmount}
-              onChangeText={(value) => handleInputChange('paidAmount', value)}
+              onChangeText={(value) => handleFieldChange('paidAmount', value)}
+              onBlur={() => handleFieldBlur('paidAmount', formData.paidAmount)}
               placeholder="Enter paid amount"
               placeholderTextColor="#9CA3AF"
               keyboardType="numeric"
             />
+            {touched.paidAmount && errors.paidAmount && (
+              <Text style={styles.errorText}>{errors.paidAmount}</Text>
+            )}
           </View>
           
           {/* Payment Method */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Payment Method</Text>
-            <TouchableOpacity 
-              style={styles.dropdownTrigger}
-              onPress={() => toggleDropdown('paymentMethod')}
+            <Text style={styles.label}>Payment Method *</Text>
+            <TouchableOpacity
+              style={[styles.dropdownTrigger, touched.paymentMethod && errors.paymentMethod && styles.inputWrapperError]}
+              onPress={() => {
+                toggleDropdown('paymentMethod');
+                handleFieldBlur('paymentMethod', formData.paymentMethod);
+              }}
             >
               <Text style={styles.dropdownTriggerText}>
                 {getSelectedLabel(paymentMethods, formData.paymentMethod)}
               </Text>
               <Text style={styles.dropdownArrow}>{'\u25bc'}</Text>
             </TouchableOpacity>
+            {touched.paymentMethod && errors.paymentMethod && (
+              <Text style={styles.errorText}>{errors.paymentMethod}</Text>
+            )}
             {dropdownStates.paymentMethod && (
               <View style={styles.dropdownContainer}>
                 {paymentMethods.map((method) => (
@@ -508,6 +583,7 @@ return (
             )}
           </TouchableOpacity>
         </View>
+      </View>
       </View>
     </ScrollView>
 

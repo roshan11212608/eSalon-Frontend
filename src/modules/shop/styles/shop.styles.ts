@@ -1,9 +1,9 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
-  container: {
+  mainContainer: {
     flex: 1,
-    backgroundColor: '#780115',
+    backgroundColor: '#f5f5f5',
   },
 
   scrollView: {
@@ -30,10 +30,10 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     shadowColor: '#f7b638',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
 
   logoText: {
@@ -50,59 +50,32 @@ export const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  // Card Section
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 32,
-    marginHorizontal: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 24,
-    elevation: 12,
-    marginBottom: 40,
-    minHeight: 300,
+  // Main Content Container
+  mainContent: {
+    backgroundColor: '#ffffff',
   },
 
   // Header
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 20,
-    marginHorizontal: 20,
-    marginTop: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    paddingVertical: 12,
+    backgroundColor: '#f5f5f5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e5e5',
   },
 
   title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#780115',
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    letterSpacing: 1,
   },
 
-  editButton: {
-    backgroundColor: '#f7b638',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#f7b638',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-    marginLeft: 80,
+  titleAccent: {
+    color: '#f7b638',
   },
 
   content: {
@@ -111,16 +84,17 @@ export const styles = StyleSheet.create({
 
   // Menu Section
   menuSection: {
-    marginBottom: 24,
+    backgroundColor: '#ffffff',
   },
 
   menuItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#e5e5e5',
   },
 
   menuItemContent: {
@@ -129,18 +103,18 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
 
-  menuIconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: 'rgba(247, 182, 56, 0.1)',
+  menuIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: '#fff9e6',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 12,
   },
 
   menuText: {
-    fontSize: 22,
+    fontSize: 14,
     color: '#1a1a1a',
     fontWeight: '500',
   },

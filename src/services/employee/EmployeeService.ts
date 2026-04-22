@@ -1,5 +1,6 @@
 
-import apiClient, { API_ENDPOINTS } from '../api/apiClient';
+import { apiService } from '../apiService';
+import { API_ENDPOINTS } from '../../config/api';
 
 export interface Employee {
   id: string;
@@ -33,7 +34,7 @@ export interface ApiResponse<T> {
 class EmployeeService {
   async getAllEmployees(): Promise<Employee[]> {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.EMPLOYEE.BASE);
+      const response = await apiService.get(API_ENDPOINTS.EMPLOYEE.BASE);
       const result: ApiResponse<Employee[]> = response.data;
       return result.data;
     } catch (error) {
@@ -44,7 +45,7 @@ class EmployeeService {
 
   async getEmployeeById(id: string): Promise<Employee> {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.EMPLOYEE.BY_ID(Number(id)));
+      const response = await apiService.get(API_ENDPOINTS.EMPLOYEE.BY_ID(Number(id)));
       const result: ApiResponse<Employee> = response.data;
       return result.data;
     } catch (error) {
@@ -55,7 +56,7 @@ class EmployeeService {
 
   async createEmployee(employee: NewEmployee): Promise<Employee> {
     try {
-      const response = await apiClient.post(API_ENDPOINTS.EMPLOYEE.BASE, {
+      const response = await apiService.post(API_ENDPOINTS.EMPLOYEE.BASE, {
         ...employee,
         shopId: employee.shopId || '1', // Use provided shopId or default to '1'
         shopName: 'Main Salon', // TODO: Get from context
@@ -70,7 +71,7 @@ class EmployeeService {
 
   async updateEmployee(id: string, employee: Partial<Employee>): Promise<Employee> {
     try {
-      const response = await apiClient.put(API_ENDPOINTS.EMPLOYEE.BY_ID(Number(id)), employee);
+      const response = await apiService.put(API_ENDPOINTS.EMPLOYEE.BY_ID(Number(id)), employee);
       const result: ApiResponse<Employee> = response.data;
       return result.data;
     } catch (error) {
@@ -81,7 +82,7 @@ class EmployeeService {
 
   async deleteEmployee(id: string): Promise<void> {
     try {
-      await apiClient.delete(API_ENDPOINTS.EMPLOYEE.BY_ID(Number(id)));
+      await apiService.delete(API_ENDPOINTS.EMPLOYEE.BY_ID(Number(id)));
     } catch (error) {
       console.error('Error deleting employee:', error);
       throw error;
@@ -90,7 +91,7 @@ class EmployeeService {
 
   async reactivateEmployee(id: string): Promise<Employee> {
     try {
-      const response = await apiClient.put(API_ENDPOINTS.EMPLOYEE.BY_ID(Number(id)) + '/reactivate');
+      const response = await apiService.put(API_ENDPOINTS.EMPLOYEE.BY_ID(Number(id)) + '/reactivate');
       const result: ApiResponse<Employee> = response.data;
       return result.data;
     } catch (error) {
@@ -101,7 +102,7 @@ class EmployeeService {
 
   async getEmployeesByShop(shopId: number): Promise<Employee[]> {
     try {
-      const response = await apiClient.get(API_ENDPOINTS.EMPLOYEE.BY_SHOP(shopId));
+      const response = await apiService.get(API_ENDPOINTS.EMPLOYEE.BY_SHOP(shopId));
       const result: ApiResponse<Employee[]> = response.data;
       return result.data;
     } catch (error) {
@@ -112,7 +113,7 @@ class EmployeeService {
 
   async toggleEmployeeStatus(id: string): Promise<Employee> {
     try {
-      const response = await apiClient.put(API_ENDPOINTS.EMPLOYEE.BY_ID(Number(id)), {
+      const response = await apiService.put(API_ENDPOINTS.EMPLOYEE.BY_ID(Number(id)), {
         isActive: false // TODO: Implement proper status toggle
       });
       const result: ApiResponse<Employee> = response.data;

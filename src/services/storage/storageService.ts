@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Storage keys
 const STORAGE_KEYS = {
   TOKEN: 'user_token',
+  REFRESH_TOKEN: 'refresh_token',
   ROLE: 'user_role', // 'owner' | 'staff' | 'admin'
   IS_FIRST_TIME: 'is_first_time',
   SHOP_ID: 'shop_id',
@@ -22,10 +23,12 @@ export interface UserData {
   shopId?: string;
   shopName?: string;
   shopAddress?: string;
+  employeeId?: string;
 }
 
 export interface AuthData {
   token: string;
+  refreshToken?: string;
   role: UserRole;
   isFirstTime: boolean;
   shopId?: string;
@@ -39,6 +42,16 @@ export class StorageService {
       return await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
     } catch (error) {
       console.error('Error getting token:', error);
+      return null;
+    }
+  }
+
+  // Get refresh token
+  static async getRefreshToken(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+    } catch (error) {
+      console.error('Error getting refresh token:', error);
       return null;
     }
   }
@@ -117,6 +130,16 @@ export class StorageService {
     }
   }
 
+  // Save refresh token
+  static async setRefreshToken(refreshToken: string): Promise<void> {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+    } catch (error) {
+      console.error('Error setting refresh token:', error);
+      throw error;
+    }
+  }
+
   // Save role
   static async setRole(role: UserRole): Promise<void> {
     try {
@@ -156,6 +179,10 @@ export class StorageService {
         this.setIsFirstTime(authData.isFirstTime)
       ];
       
+      if (authData.refreshToken) {
+        promises.push(this.setRefreshToken(authData.refreshToken));
+      }
+      
       if (authData.shopId) {
         promises.push(this.setShopId(authData.shopId));
       }
@@ -172,6 +199,7 @@ export class StorageService {
     try {
       await Promise.all([
         AsyncStorage.removeItem(STORAGE_KEYS.TOKEN),
+        AsyncStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN),
         AsyncStorage.removeItem(STORAGE_KEYS.ROLE),
         AsyncStorage.removeItem(STORAGE_KEYS.IS_FIRST_TIME),
         AsyncStorage.removeItem(STORAGE_KEYS.SHOP_ID),
