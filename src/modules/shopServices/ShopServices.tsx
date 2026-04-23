@@ -52,7 +52,7 @@ export default function Services() {
 
   const handleAddService = () => {
     Haptics.notificationAsync();
-    router.push('/shopServices/addNewServices');
+    router.push('/(owner-tabs)/shopServices/addNewServices');
   };
 
   const handleDeleteService = (id: number) => {

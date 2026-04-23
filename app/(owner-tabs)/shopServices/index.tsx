@@ -5,7 +5,7 @@ import { styles } from '../../../src/modules/shop/styles/shop.styles';
 
 export default function ServicesScreen() {
   return (
-    <View style={styles.container}>
+    <View style={styles.mainContainer}>
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}

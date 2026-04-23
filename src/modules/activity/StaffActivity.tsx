@@ -10,6 +10,8 @@ export default function StaffActivity() {
       router.push('/(staff-tabs)/activity-list' as any);
     } else if (activityType === 'Payments') {
       router.push('/(staff-tabs)/payments' as any);
+    } else if (activityType === 'Staff Reports') {
+      router.push('/(staff-tabs)/reports' as any);
     } else {
       Alert.alert(
         'Activity Navigation',
@@ -53,6 +55,15 @@ export default function StaffActivity() {
                   <Ionicons name="card" size={18} color="#f7b638" />
                 </View>
                 <Text style={styles.menuText}>Payments</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#c7c7c7" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleActivityPress('Staff Reports')}>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuIcon}>
+                  <Ionicons name="document-text" size={18} color="#f7b638" />
+                </View>
+                <Text style={styles.menuText}>Staff Reports</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color="#c7c7c7" />
             </TouchableOpacity>

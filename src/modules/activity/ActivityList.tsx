@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, RefreshControl, Modal } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -201,6 +201,27 @@ export default function ActivityList() {
     }
   });
 
+  // Calculate activity counts for different time periods
+  const activityStats = useMemo(() => {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(startOfDay);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+    const startOfWeek = new Date(startOfDay);
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    return {
+      today: activities.filter(a => new Date(a.createdAt) >= startOfDay).length,
+      yesterday: activities.filter(a => {
+        const date = new Date(a.createdAt);
+        return date >= startOfYesterday && date < startOfDay;
+      }).length,
+      thisWeek: activities.filter(a => new Date(a.createdAt) >= startOfWeek).length,
+      monthly: activities.filter(a => new Date(a.createdAt) >= startOfMonth).length,
+    };
+  }, [activities]);
+
   const ActivityCard = ({ activity }: { activity: Activity }) => (
     <TouchableOpacity 
       style={styles.activityCard} 
@@ -272,6 +293,26 @@ export default function ActivityList() {
         >
           <Ionicons name="add" size={24} color="#f7b638" />
         </TouchableOpacity>
+      </View>
+
+      {/* Activity Summary Section */}
+      <View style={styles.summaryContainer}>
+        <View style={[styles.summaryCard, { backgroundColor: '#EEF2FF' }]}>
+          <Text style={[styles.summaryCount, { color: '#6366F1' }]}>{activityStats.today}</Text>
+          <Text style={styles.summaryLabel}>Today</Text>
+        </View>
+        <View style={[styles.summaryCard, { backgroundColor: '#ECFDF5' }]}>
+          <Text style={[styles.summaryCount, { color: '#10B981' }]}>{activityStats.yesterday}</Text>
+          <Text style={styles.summaryLabel}>Yesterday</Text>
+        </View>
+        <View style={[styles.summaryCard, { backgroundColor: '#FFFBEB' }]}>
+          <Text style={[styles.summaryCount, { color: '#F59E0B' }]}>{activityStats.thisWeek}</Text>
+          <Text style={styles.summaryLabel}>This Week</Text>
+        </View>
+        <View style={[styles.summaryCard, { backgroundColor: '#FDF2F8' }]}>
+          <Text style={[styles.summaryCount, { color: '#EC4899' }]}>{activityStats.monthly}</Text>
+          <Text style={styles.summaryLabel}>Monthly</Text>
+        </View>
       </View>
 
       {/* Filter Section - Fixed below header */}

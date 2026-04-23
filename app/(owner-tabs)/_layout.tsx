@@ -128,6 +128,76 @@ export default function OwnerTabsLayout() {
         />
         
         <Tabs.Screen
+          name="reports"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="reports/index"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="reports/activity-report"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="reports/payment-report"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="reports/expense-report"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="reports/staff-performance"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="reports/service-analytics"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="reports/financial-summary"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="reports/appointment-report"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="reports/[period]"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
           name="payments"
           options={{
             href: null
@@ -156,6 +226,13 @@ export default function OwnerTabsLayout() {
         />
         
         <Tabs.Screen
+          name="payments/staffPayments"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
           name="shopServices"
           options={{
             href: null
@@ -171,6 +248,13 @@ export default function OwnerTabsLayout() {
         
         <Tabs.Screen
           name="shopServices/addNewServices"
+          options={{
+            href: null
+          }}
+        />
+        
+        <Tabs.Screen
+          name="profile/edit"
           options={{
             href: null
           }}

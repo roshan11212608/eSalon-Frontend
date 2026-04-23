@@ -65,6 +65,15 @@ export default function Activity() {
               </View>
               <Ionicons name="chevron-forward" size={18} color="#c7c7c7" />
             </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/(owner-tabs)/reports')}>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuIcon}>
+                  <Ionicons name="bar-chart" size={18} color="#f7b638" />
+                </View>
+                <Text style={styles.menuText}>Reports</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#c7c7c7" />
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>

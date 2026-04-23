@@ -3,6 +3,8 @@ import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Ref
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { ActivityService } from '@/src/services/activityService';
+import EmployeeService from '@/src/services/employee/EmployeeService';
+import { useAuthStore } from '@/src/shared/hooks/useAuthStore';
 import { styles } from './styles/activityList.styles';
 
 interface Activity {
@@ -12,6 +14,7 @@ interface Activity {
   amount: number;
   notes?: string;
   createdAt: string;
+  employeeName?: string;
   employeeId?: number;
 }
 
@@ -26,10 +29,13 @@ export default function StaffActivityList() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [selectingStartDate, setSelectingStartDate] = useState(true);
+  const [dateRangeApplied, setDateRangeApplied] = useState(false);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [commissionPercentage, setCommissionPercentage] = useState(0);
   const pageSize = 10;
+  const authState = useAuthStore();
 
   const fetchActivities = useCallback(async (resetPage = false) => {
     try {
@@ -43,23 +49,18 @@ export default function StaffActivityList() {
         'Yesterday': 'yesterday',
         'This Week': 'week',
         'Monthly': 'month',
-        'Date Wise': 'dateRange'
+        'Date Wise': 'all' // Use 'all' for date range and filter client-side
       };
       
       const backendFilter = filterMap[selectedFilter] || 'all';
       
-      let startDateStr, endDateStr;
-      if (selectedFilter === 'Date Wise') {
-        startDateStr = startDate.toISOString().split('T')[0];
-        endDateStr = endDate.toISOString().split('T')[0];
-      }
-      
+      // Don't send date parameters to backend - use client-side filtering instead
       const paginatedResponse = await ActivityService.getMyActivitiesPaginated(
         backendFilter,
         currentPage,
         pageSize,
-        startDateStr,
-        endDateStr
+        undefined,
+        undefined
       );
       
       console.log('My activities fetched:', paginatedResponse.content.length);
@@ -81,7 +82,22 @@ export default function StaffActivityList() {
       setIsLoading(false);
       setRefreshing(false);
     }
-  }, [page, selectedFilter, startDate, endDate, pageSize]);
+  }, [page, selectedFilter, pageSize]);
+
+  // Fetch employee commission percentage
+  useEffect(() => {
+    const fetchEmployeeCommission = async () => {
+      if (authState.user?.employeeId) {
+        try {
+          const employee = await EmployeeService.getEmployeeById(authState.user.employeeId.toString());
+          setCommissionPercentage(employee.commissionPercentage || 0);
+        } catch (error) {
+          console.error('Error fetching employee commission:', error);
+        }
+      }
+    };
+    fetchEmployeeCommission();
+  }, [authState.user?.employeeId]);
 
   useEffect(() => {
     fetchActivities(true);
@@ -114,11 +130,13 @@ export default function StaffActivityList() {
       setShowDateRangeModal(true);
     } else {
       setSelectedFilter(filter);
+      setDateRangeApplied(false); // Reset date range applied when switching to other filters
     }
   };
 
   const applyDateRange = () => {
     setSelectedFilter('Date Wise');
+    setDateRangeApplied(true);
     setShowDateRangeModal(false);
   };
 
@@ -172,6 +190,19 @@ export default function StaffActivityList() {
     }
   };
 
+  const getActivityColor = (type: string) => {
+    switch (type) {
+      case 'SALE':
+        return '#10B981';
+      case 'APPOINTMENT':
+        return '#6366F1';
+      case 'EXPENSE':
+        return '#EF4444';
+      default:
+        return '#6B7280';
+    }
+  };
+
   
   const filterCategories = ['All', 'Today', 'Yesterday', 'This Week', 'Monthly', 'Date Wise'];
 
@@ -197,6 +228,53 @@ export default function StaffActivityList() {
   // Memoized activities to avoid unnecessary recalculations
   const memoizedActivities = useMemo(() => activities, [activities]);
 
+  // Client-side filtering for date range
+  const filteredActivities = useMemo(() => {
+    if (selectedFilter === 'Date Wise' && dateRangeApplied) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      return activities.filter(a => {
+        const activityDate = new Date(a.createdAt);
+        return activityDate >= start && activityDate <= end;
+      });
+    }
+    return activities;
+  }, [activities, selectedFilter, dateRangeApplied, startDate, endDate]);
+
+  // Calculate activity counts, earnings, and commission for different time periods
+  const activityStats = useMemo(() => {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(startOfDay);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+    const startOfWeek = new Date(startOfDay);
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const calculateStats = (filteredActivities: any[]) => {
+      const totalEarnings = filteredActivities.reduce((sum, a) => sum + (a.amount || 0), 0);
+      const totalCommission = (totalEarnings * commissionPercentage) / 100;
+      return {
+        count: filteredActivities.length,
+        earnings: totalEarnings,
+        commission: totalCommission
+      };
+    };
+
+    return {
+      today: calculateStats(activities.filter(a => new Date(a.createdAt) >= startOfDay)),
+      yesterday: calculateStats(activities.filter(a => {
+        const date = new Date(a.createdAt);
+        return date >= startOfYesterday && date < startOfDay;
+      })),
+      thisWeek: calculateStats(activities.filter(a => new Date(a.createdAt) >= startOfWeek)),
+      monthly: calculateStats(activities.filter(a => new Date(a.createdAt) >= startOfMonth)),
+      total: calculateStats(activities)
+    };
+  }, [activities, commissionPercentage]);
+
   const ActivityCard = ({ activity }: { activity: Activity }) => (
     <TouchableOpacity 
       style={styles.activityCard} 
@@ -204,18 +282,44 @@ export default function StaffActivityList() {
       onPress={() => Haptics.impactAsync()}
     >
       <View style={styles.activityHeader}>
+        <View style={[styles.activityIcon, { backgroundColor: getActivityColor(activity.type), overflow: 'visible' }]}>
+          <Ionicons 
+            name="checkmark-circle" 
+            size={32} 
+            color="#FFFFFF" 
+          />
+        </View>
         <View style={styles.activityInfo}>
-          <Text style={styles.activityType}>{activity.type}</Text>
-          <Text style={styles.activityDate}>{formatDate(activity.createdAt)}</Text>
+          {activity.employeeName && activity.employeeId ? (
+            <>
+              <Text style={styles.activityType}>{activity.employeeName}</Text>
+              <Text style={styles.activityDate}>ID: {activity.employeeId}</Text>
+              <Text style={styles.activityDate}>{formatDate(activity.createdAt)}</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.activityType}>
+                {activity.description?.match(/Employee:\s*([^,]+)/)?.[1]
+                  ? activity.description.match(/Employee:\s*([^,]+)/)?.[1]?.trim()
+                  : activity.type}
+              </Text>
+              <Text style={styles.activityDate}>{formatDate(activity.createdAt)}</Text>
+            </>
+          )}
         </View>
         <View style={styles.amountContainer}>
-          <Text style={styles.activityAmount}>${activity.amount.toFixed(2)}</Text>
+          <Text style={styles.activityAmount}>₹{activity.amount.toFixed(2)}</Text>
         </View>
       </View>
-      <Text style={styles.activityDescription}>{activity.description}</Text>
+      {!(activity.employeeName && activity.employeeId) && (
+        <Text style={styles.activityDescription}>{activity.description}</Text>
+      )}
       {activity.notes && (
         <View style={styles.notesContainer}>
-          <Text style={styles.activityNotes}>{activity.notes}</Text>
+          <Ionicons name="information-circle" size={14} color="#64748B" />
+          <Text style={styles.activityNotes}>
+            {activity.notes?.split('|').filter((part: string) => !part.trim().startsWith('Employee:')).join(' | ')}
+          </Text>
         </View>
       )}
     </TouchableOpacity>
@@ -232,8 +336,59 @@ export default function StaffActivityList() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>My Act<Text style={styles.titleAccent}>ivities</Text></Text>
+      {/* Fixed Header */}
+      <View style={styles.fixedHeader}>
+        <Text style={styles.title}><Text style={styles.titleAccent}>Activity</Text> List</Text>
+      </View>
+
+      {/* Activity Summary Section */}
+      <View style={styles.summaryContainer}>
+        <View style={[styles.summaryCard, { backgroundColor: '#EEF2FF' }]}>
+          <Text style={[styles.summaryCount, { color: '#6366F1' }]}>{activityStats.today.count}</Text>
+          <Text style={styles.summaryLabel}>Today</Text>
+        </View>
+        <View style={[styles.summaryCard, { backgroundColor: '#ECFDF5' }]}>
+          <Text style={[styles.summaryCount, { color: '#10B981' }]}>{activityStats.yesterday.count}</Text>
+          <Text style={styles.summaryLabel}>Yesterday</Text>
+        </View>
+        <View style={[styles.summaryCard, { backgroundColor: '#FFFBEB' }]}>
+          <Text style={[styles.summaryCount, { color: '#F59E0B' }]}>{activityStats.thisWeek.count}</Text>
+          <Text style={styles.summaryLabel}>This Week</Text>
+        </View>
+        <View style={[styles.summaryCard, { backgroundColor: '#FDF2F8' }]}>
+          <Text style={[styles.summaryCount, { color: '#EC4899' }]}>{activityStats.monthly.count}</Text>
+          <Text style={styles.summaryLabel}>Monthly</Text>
+        </View>
+      </View>
+
+      {/* Earnings and Commission Section */}
+      <View style={styles.earningsContainer}>
+        <View style={styles.earningsCard}>
+          <View style={styles.earningsHeader}>
+            <View style={styles.earningsBadge}>
+              <Ionicons name="cash" size={16} color="#FFFFFF" />
+            </View>
+            <Text style={styles.earningsLabel}>Total Earnings</Text>
+          </View>
+          <Text style={styles.earningsAmount}>₹{activityStats.total.earnings.toFixed(0)}</Text>
+          <View style={styles.earningsProgress}>
+            <View style={[styles.earningsProgressBar, { width: '100%', backgroundColor: '#10B981' }]} />
+          </View>
+          <Text style={styles.earningsSubtitle}>All activities combined</Text>
+        </View>
+        <View style={styles.earningsCard}>
+          <View style={styles.earningsHeader}>
+            <View style={[styles.earningsBadge, { backgroundColor: '#6366F1' }]}>
+              <Ionicons name="wallet" size={16} color="#FFFFFF" />
+            </View>
+            <Text style={styles.earningsLabel}>Your Commission</Text>
+          </View>
+          <Text style={styles.earningsAmount}>₹{activityStats.total.commission.toFixed(0)}</Text>
+          <View style={styles.earningsProgress}>
+            <View style={[styles.earningsProgressBar, { width: `${commissionPercentage}%`, backgroundColor: '#6366F1' }]} />
+          </View>
+          <Text style={styles.earningsSubtitle}>{commissionPercentage}% of earnings</Text>
+        </View>
       </View>
 
       <View style={styles.filterContainer}>
@@ -271,11 +426,11 @@ export default function StaffActivityList() {
       <ScrollView
         style={styles.scrollView}
         refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
+          <RefreshControl
+            refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#6366F1']}
-            tintColor="#6366F1"
+            colors={['#f7b638']}
+            tintColor="#f7b638"
           />
         }
         onScroll={({ nativeEvent }) => {
@@ -323,10 +478,10 @@ export default function StaffActivityList() {
             </View>
           ) : (
             <>
-              {memoizedActivities.map((activity) => (
+              {filteredActivities.map((activity) => (
                 <ActivityCard key={activity.id} activity={activity} />
               ))}
-              {hasMore && (
+              {hasMore && selectedFilter !== 'Date Wise' && (
                 <View style={{ padding: 20, alignItems: 'center' }}>
                   <ActivityIndicator size="small" color="#6366F1" />
                 </View>

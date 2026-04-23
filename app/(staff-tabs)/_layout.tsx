@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function StaffTabsLayout() {
@@ -54,7 +54,7 @@ export default function StaffTabsLayout() {
             ),
           }}
         />
-        
+
         <Tabs.Screen
           name="profile"
           options={{
@@ -76,9 +76,44 @@ export default function StaffTabsLayout() {
             href: null
           }}
         />
-        
+
         <Tabs.Screen
           name="payments"
+          options={{
+            href: null
+          }}
+        />
+
+        <Tabs.Screen
+          name="payments/index"
+          options={{
+            href: null
+          }}
+        />
+
+        <Tabs.Screen
+          name="payments/staffPayments"
+          options={{
+            href: null
+          }}
+        />
+
+        <Tabs.Screen
+          name="staff-payments"
+          options={{
+            href: null
+          }}
+        />
+
+        {/* Hide reports from tabs - accessible from Activity menu */}
+        <Tabs.Screen
+          name="reports"
+          options={{
+            href: null
+          }}
+        />
+        <Tabs.Screen
+          name="reports/index"
           options={{
             href: null
           }}

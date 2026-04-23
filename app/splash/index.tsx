@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { router } from 'expo-router';
-import { authStore } from '../src/store/authStore';
+import { authStore } from '../../src/store/authStore';
 
 export default function Splash() {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
