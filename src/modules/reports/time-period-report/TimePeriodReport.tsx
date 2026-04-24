@@ -1,12 +1,54 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from './styles/timePeriodReport.styles';
+import { StorageService } from '../../../services/storage/storageService';
+import reportsService from '../../../services/reports/reportsService';
+import type { StaffActivityReportResponse } from '../../../services/reports/reportsService';
 
 export default function TimePeriodReport() {
   const { period } = useLocalSearchParams<{ period: string }>();
   const router = useRouter();
+  const [shopId, setShopId] = useState<number | null>(null);
+  const [reportData, setReportData] = useState<StaffActivityReportResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadShopId = async () => {
+      try {
+        const userData = await StorageService.getUserData();
+        if (userData?.shopId) {
+          setShopId(Number(userData.shopId));
+        }
+      } catch (error) {
+        console.error('Error loading shopId:', error);
+      }
+    };
+    loadShopId();
+  }, []);
+
+  useEffect(() => {
+    if (shopId) {
+      fetchTimePeriodReport();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shopId, period]);
+
+  const fetchTimePeriodReport = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await reportsService.getStaffActivityReport(period || 'month');
+      setReportData(data);
+    } catch (err: any) {
+      setError('Failed to load time period report');
+      console.error('Error fetching time period report:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getPeriodTitle = () => {
     switch (period) {
@@ -68,65 +110,51 @@ export default function TimePeriodReport() {
     return result;
   };
 
-  const staffActivities = [
-    {
-      id: 1,
-      staffName: 'John Doe',
-      service: 'Haircut',
-      customer: 'Alice Smith',
-      amount: '₹25.00',
-      time: '10:30 AM',
-      earnings: '₹20',
-      commission: '₹5.00',
-    },
-    {
-      id: 2,
-      staffName: 'Jane Smith',
-      service: 'Hair Coloring',
-      customer: 'Bob Johnson',
-      amount: '₹80.00',
-      time: '11:15 AM',
-      earnings: '₹640000.00',
-      commission: '₹16.00',
-    },
-    {
-      id: 3,
-      staffName: 'John Doe',
-      service: 'Beard Trim',
-      customer: 'Charlie Brown',
-      amount: '₹15.00',
-      time: '12:00 PM',
-      earnings: '₹12.00',
-      commission: '₹3.00',
-    },
-    {
-      id: 4,
-      staffName: 'Sarah Wilson',
-      service: 'Facial',
-      customer: 'Diana Prince',
-      amount: '₹60.00',
-      time: '2:30 PM',
-      earnings: '₹48.00',
-      commission: '₹12.00',
-    },
-  ];
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#1e293b" />
+          </TouchableOpacity>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.title}>{getPeriodTitle()} <Text style={styles.highlightText}>Report</Text></Text>
+          </View>
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#0554f0" />
+          <Text style={{ marginTop: 10 }}>Loading...</Text>
+        </View>
+      </View>
+    );
+  }
 
-  // Group activities by staff
-  const groupedActivities = staffActivities.reduce((acc, activity) => {
-    if (!acc[activity.staffName]) {
-      acc[activity.staffName] = {
-        activities: [],
-        totalActivities: 0,
-        totalEarnings: 0,
-        totalCommission: 0,
-      };
-    }
-    acc[activity.staffName].activities.push(activity);
-    acc[activity.staffName].totalActivities += 1;
-    acc[activity.staffName].totalEarnings += parseFloat(activity.earnings.replace('₹', ''));
-    acc[activity.staffName].totalCommission += parseFloat(activity.commission.replace('₹', ''));
-    return acc;
-  }, {} as any);
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#1e293b" />
+          </TouchableOpacity>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.title}>{getPeriodTitle()} <Text style={styles.highlightText}>Report</Text></Text>
+          </View>
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Ionicons name="alert-circle" size={48} color="#EF4444" />
+          <Text style={{ marginTop: 10, color: '#EF4444', textAlign: 'center' }}>{error}</Text>
+          <TouchableOpacity onPress={fetchTimePeriodReport} style={{ marginTop: 20, backgroundColor: '#0554f0', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8 }}>
+            <Text style={{ color: '#fff' }}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  const groupedActivities = reportData?.groupedActivities;
+  const groupedActivitiesArray = groupedActivities 
+    ? (groupedActivities instanceof Map ? Object.fromEntries(groupedActivities) : groupedActivities)
+    : {};
 
   return (
     <View style={styles.container}>
@@ -144,15 +172,15 @@ export default function TimePeriodReport() {
         <View style={styles.summaryRow}>
           <View style={[styles.summaryCard, styles.activitiesCard]}>
             <Text style={styles.summaryLabel}>Total Activities</Text>
-            <Text style={styles.summaryValue}>{staffActivities.length}</Text>
+            <Text style={styles.summaryValue}>{reportData?.totalActivities || 0}</Text>
           </View>
           <View style={[styles.summaryCard, styles.earningsCard]}>
             <Text style={styles.summaryLabel}>Total Earnings</Text>
-            <Text style={styles.summaryValue}>₹{formatIndianCurrency(staffActivities.reduce((sum, a) => sum + parseFloat(a.earnings.replace('₹', '')), 0))}</Text>
+            <Text style={styles.summaryValue}>₹{formatIndianCurrency(reportData?.totalEarnings || 0)}</Text>
           </View>
           <View style={[styles.summaryCard, styles.staffCard]}>
             <Text style={styles.summaryLabel}>Staff Earnings</Text>
-            <Text style={styles.summaryValue}>₹{formatIndianCurrency(staffActivities.reduce((sum, a) => sum + parseFloat(a.commission.replace('₹', '')), 0))}</Text>
+            <Text style={styles.summaryValue}>₹{formatIndianCurrency(reportData?.staffEarnings || 0)}</Text>
           </View>
         </View>
         <View style={styles.summaryRow}>
@@ -161,7 +189,7 @@ export default function TimePeriodReport() {
               <Ionicons name="trending-up" size={24} color="#ffffff" />
             </View>
             <Text style={styles.profitCardLabel}>Shop Profit</Text>
-            <Text style={styles.profitCardValue}>₹{formatIndianCurrency(staffActivities.reduce((sum, a) => sum + parseFloat(a.earnings.replace('₹', '')), 0) - staffActivities.reduce((sum, a) => sum + parseFloat(a.commission.replace('₹', '')), 0))}</Text>
+            <Text style={styles.profitCardValue}>₹{formatIndianCurrency(reportData?.shopProfit || 0)}</Text>
             <View style={styles.cardBadge}>
               <Text style={styles.cardBadgeText}>Net Profit</Text>
             </View>
@@ -173,7 +201,7 @@ export default function TimePeriodReport() {
         <View style={styles.listContainer}>
           <Text style={styles.listTitle}>Staff Report</Text>
           
-          {Object.entries(groupedActivities).map(([staffName, data]: [string, any]) => (
+          {Object.entries(groupedActivitiesArray).map(([staffName, data]: [string, any]) => (
             <View key={staffName} style={styles.staffActivityCard}>
               <View style={styles.activityRow}>
                 <View style={styles.avatarContainer}>
@@ -192,11 +220,11 @@ export default function TimePeriodReport() {
               <View style={styles.staffStatsRow}>
                 <View style={styles.statItem}>
                   <Text style={styles.statLabel}>Total Earning</Text>
-                  <Text style={styles.statValue}>₹{formatIndianCurrency(data.totalEarnings)}</Text>
+                  <Text style={styles.statValue}>₹{formatIndianCurrency(data.totalEarnings || 0)}</Text>
                 </View>
                 <View style={styles.statItem}>
                   <Text style={styles.statLabel}>Total Commission</Text>
-                  <Text style={styles.statValue}>₹{formatIndianCurrency(data.totalCommission)}</Text>
+                  <Text style={styles.statValue}>₹{formatIndianCurrency(data.totalCommission || 0)}</Text>
                 </View>
               </View>
             </View>
@@ -206,9 +234,9 @@ export default function TimePeriodReport() {
           <View style={styles.chartContainer}>
             <Text style={styles.chartTitle}>Staff Earnings</Text>
             <View style={styles.chart}>
-              {Object.entries(groupedActivities).map(([staffName, data]: [string, any], index: number) => {
-                const maxEarning = Math.max(...Object.values(groupedActivities).map((d: any) => d.totalEarnings));
-                const barHeight = (data.totalEarnings / maxEarning) * 150;
+              {Object.entries(groupedActivitiesArray).map(([staffName, data]: [string, any], index: number) => {
+                const maxEarning = Math.max(...Object.values(groupedActivitiesArray).map((d: any) => d.totalEarnings || 0));
+                const barHeight = maxEarning > 0 ? ((data.totalEarnings || 0) / maxEarning) * 150 : 0;
                 const colors = ['#0554f0', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
                 return (
                   <View key={staffName} style={styles.chartBarContainer}>

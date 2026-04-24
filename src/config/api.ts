@@ -132,6 +132,17 @@ export const API_ENDPOINTS = {
     ADMIN: '/dashboard/admin',
   },
   
+  // Reports
+  REPORTS: {
+    BASE: '/reports',
+    EXPENSE: '/reports/expense',
+    PAYMENT: '/reports/payment',
+    SERVICE_ANALYTICS: '/reports/service-analytics',
+    FINANCIAL_SUMMARY: '/reports/financial',
+    STAFF_ACTIVITY: '/reports/staff-activity',
+    STAFF: '/reports/staff',
+  },
+  
   // Health Check
   HEALTH: '/health',
 } as const;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { styles } from './styles/addPayment.styles';
@@ -12,6 +12,7 @@ import FullScreenLoader from '@/src/shared/components/FullScreenLoader';
 
 export default function AddPayment() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const authState = useAuthStore();
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessageText, setSuccessMessageText] = useState('');
@@ -84,6 +85,26 @@ export default function AddPayment() {
   useEffect(() => {
     fetchStaff();
   }, [fetchStaff]);
+
+  // Auto-fill data when coming from payment report
+  useEffect(() => {
+    if (params.employeeId && params.employeeName && params.amount && staffList.length > 0) {
+      const employee = staffList.find(emp => emp.id.toString() === params.employeeId);
+      
+      if (employee) {
+        setSelectedStaff({
+          id: employee.id,
+          name: employee.name,
+          commissionRate: employee.commissionRate
+        });
+        setNewPayment(prev => ({
+          ...prev,
+          amount: params.amount as string,
+          commissionRate: employee.commissionRate.toString(),
+        }));
+      }
+    }
+  }, [params, staffList]);
 
   useFocusEffect(
     useCallback(() => {

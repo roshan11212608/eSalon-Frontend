@@ -253,4 +253,47 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#6b7280',
   },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+
+  loadingText: {
+    fontSize: 16,
+    color: '#64748b',
+    marginTop: 12,
+    fontWeight: '600',
+  },
+
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+
+  errorText: {
+    fontSize: 16,
+    color: '#EF4444',
+    marginTop: 12,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+
+  retryButton: {
+    marginTop: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: '#0554f0',
+    borderRadius: 8,
+  },
+
+  retryButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
 });

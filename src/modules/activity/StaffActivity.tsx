@@ -18,7 +18,15 @@ export default function StaffActivity() {
         `Navigate to ${activityType}`,
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Go to Activity', onPress: () => console.log(`Navigate to ${activityType}`) }
+          { text: 'Go to Activity', onPress: () => {
+            if (activityType === 'Activity List') {
+              router.push('/(staff-tabs)/activity-list' as any);
+            } else if (activityType === 'Payments') {
+              router.push('/(staff-tabs)/payments' as any);
+            } else if (activityType === 'Staff Reports') {
+              router.push('/(staff-tabs)/reports' as any);
+            }
+          }}
         ]
       );
     }

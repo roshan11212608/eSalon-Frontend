@@ -16,7 +16,11 @@ export default function Activity() {
         `Navigate to ${activityType} activity\nFile: ${fileName}`,
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Go to Activity', onPress: () => console.log(`Navigate to ${fileName}`) }
+          { text: 'Go to Activity', onPress: () => {
+            if (activityType === 'Activity List') {
+              router.push('/(owner-tabs)/activity/list');
+            }
+          }}
         ]
       );
     }
