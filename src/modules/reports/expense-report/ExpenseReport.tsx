@@ -1,26 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { styles } from './styles/expenseReport.styles';
 import { reportsService, ExpenseReportResponse } from '../../../services/reports/reportsService';
 
 export default function ExpenseReport() {
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [reportData, setReportData] = useState<ExpenseReportResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const timePeriods = [
-    { id: 'today', label: 'Today' },
-    { id: 'week', label: 'This Week' },
-    { id: 'month', label: 'This Month' },
-  ];
+  const handleViewExpenses = () => {
+    router.push('/(owner-tabs)/expenses' as any);
+  };
 
   const fetchExpenseReport = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await reportsService.getExpenseReport(undefined, selectedPeriod);
+      console.log('Fetching expense report for current month');
+      const data = await reportsService.getExpenseReport(undefined, 'month');
+      console.log('Expense report data:', data);
       setReportData(data);
     } catch (err: any) {
       setError('Failed to load expense report');
@@ -32,8 +32,9 @@ export default function ExpenseReport() {
 
   useEffect(() => {
     fetchExpenseReport();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPeriod]);
+    const interval = setInterval(fetchExpenseReport, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   const getPeriodData = () => {
     if (!reportData) {
@@ -49,34 +50,22 @@ export default function ExpenseReport() {
 
   const { expenseStats, expenseCategories, recentExpenses, expenseTrends } = getPeriodData();
 
+  console.log('Expense stats:', expenseStats);
+  console.log('Expense categories:', expenseCategories);
+  console.log('Recent expenses:', recentExpenses);
+  console.log('Expense trends:', expenseTrends);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Expense <Text style={styles.highlightText}>Report</Text></Text>
+        <TouchableOpacity style={styles.viewExpensesButton} onPress={handleViewExpenses}>
+          <Ionicons name="list" size={20} color="#F59E0B" />
+        </TouchableOpacity>
       </View>
-      {/* Time Period Selector */}
-      <View style={styles.periodSelector}>
-        {timePeriods.map((period) => (
-          <TouchableOpacity
-            key={period.id}
-            style={[
-              styles.periodButton,
-              selectedPeriod === period.id && styles.periodButtonActive,
-            ]}
-            onPress={() => setSelectedPeriod(period.id)}
-            activeOpacity={0.7}
-            disabled={loading}
-          >
-            <Text
-              style={[
-                styles.periodButtonText,
-                selectedPeriod === period.id && styles.periodButtonTextActive,
-              ]}
-            >
-              {period.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      <View style={styles.monthInfo}>
+        <Text style={styles.monthLabel}>Current Month</Text>
+        <Text style={styles.monthValue}>{new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</Text>
       </View>
       
       {loading ? (
@@ -127,7 +116,7 @@ export default function ExpenseReport() {
           {/* Recent Expenses Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Recent Expenses</Text>
-            {recentExpenses.map((expense) => (
+            {recentExpenses.slice(0, 5).map((expense) => (
               <View key={expense.id} style={styles.expenseItem}>
                 <View style={styles.expenseIcon}>
                   <Ionicons name="receipt" size={20} color="#F59E0B" />
@@ -151,16 +140,14 @@ export default function ExpenseReport() {
             <View style={styles.chartContainer}>
               {expenseTrends.map((trend, index) => {
                 const maxAmount = Math.max(...expenseTrends.map(t => t.amount));
-                const barWidth = (trend.amount / maxAmount) * 150;
-                const periodLabel = trend.period.split(' ')[0];
-                const hasDateRange = trend.period.includes('(');
-                const dateRange = hasDateRange ? trend.period.split(' (')[1].replace(')', '') : null;
+                const barWidth = maxAmount > 0 ? (trend.amount / maxAmount) * 150 : 0;
+                const isYearly = !trend.period.includes(' ') && trend.period.length === 4;
+                const periodLabel = isYearly ? trend.period : trend.period.split(' ')[0];
                 return (
                   <View key={index} style={styles.chartBarContainer}>
-                    <Text style={styles.chartBarLabel}>{periodLabel}</Text>
+                    <Text style={[styles.chartBarLabel, isYearly && styles.chartBarLabelYearly]}>{periodLabel}</Text>
                     <View style={styles.chartBarWrapper}>
-                      <View style={[styles.chartBar, { width: barWidth, backgroundColor: '#F59E0B' }]} />
-                      {hasDateRange && <Text style={styles.chartDateRange}>{dateRange}</Text>}
+                      <View style={[styles.chartBar, { width: barWidth, backgroundColor: isYearly ? '#6366F1' : '#F59E0B' }]} />
                     </View>
                     <Text style={styles.chartBarValue}>₹{trend.amount.toLocaleString('en-IN')}</Text>
                   </View>

@@ -17,6 +17,17 @@ export const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
+  viewExpensesButton: {
+    backgroundColor: '#F59E0B20',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   title: {
@@ -28,6 +39,34 @@ export const styles = StyleSheet.create({
 
   highlightText: {
     color: '#FFC107',
+  },
+
+  monthInfo: {
+    backgroundColor: '#ffffff',
+    margin: 16,
+    marginTop: 12,
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+
+  monthLabel: {
+    fontSize: 14,
+    color: '#64748b',
+    fontWeight: '600',
+  },
+
+  monthValue: {
+    fontSize: 16,
+    color: '#0f172a',
+    fontWeight: '800',
   },
 
   subtitle: {
@@ -281,6 +320,13 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: '#64748b',
+    width: 45,
+  },
+
+  chartBarLabelYearly: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#6366F1',
     width: 45,
   },
 

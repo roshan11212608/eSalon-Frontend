@@ -126,6 +126,14 @@ export default function OwnerTabsLayout() {
             href: null
           }}
         />
+        <Tabs.Screen
+          name="expenses/addExpenses"
+          options={{
+            href: null
+          }}
+        />
+        
+        
         
         <Tabs.Screen
           name="reports"
