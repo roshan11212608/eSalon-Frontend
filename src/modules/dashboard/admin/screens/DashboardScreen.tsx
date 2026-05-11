@@ -1,150 +1,119 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { StorageService } from '../../../../services/storage/storageService';
+import React, { useState, useRef, useMemo } from 'react';
+import { View, ScrollView, RefreshControl, Animated } from 'react-native';
+import { styles } from '../styles/adminDashboard.styles';
+import { useAdminDashboard } from '../hooks/useAdminDashboard';
+import { PeriodType } from '../types/dashboard.types';
+import { DEFAULT_VALUES, ANIMATION_CONFIG, getGreeting } from '../config/dashboardConfig';
+import DashboardHeader from '../components/DashboardHeader';
+import SummaryCards from '../components/SummaryCards';
+import PeriodSelector from '../components/PeriodSelector';
+import FinancialStats from '../components/FinancialStats';
+import QuickActions from '../components/QuickActions';
+import NotificationModal from '../components/NotificationModal';
 
-export default function AdminDashboard() {
-  const handleLogout = async () => {
-    try {
-      await StorageService.clearAuthData();
-      // In a real app, you'd use router here
-      console.log('Admin logged out');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+export default function AdminDashboardScreen() {
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>(DEFAULT_VALUES.INITIAL_PERIOD);
+  const [refreshing, setRefreshing] = useState(false);
+  const [isChangingPeriod, setIsChangingPeriod] = useState(false);
+
+  // Create animation values for summary cards
+  const cardAnimation1 = useRef(new Animated.Value(ANIMATION_CONFIG.CARDS.initialOpacity)).current;
+  const cardAnimation2 = useRef(new Animated.Value(ANIMATION_CONFIG.CARDS.initialOpacity)).current;
+  const cardAnimation3 = useRef(new Animated.Value(ANIMATION_CONFIG.CARDS.initialOpacity)).current;
+  const cardAnimation4 = useRef(new Animated.Value(ANIMATION_CONFIG.CARDS.initialOpacity)).current;
+
+  const cardAnimations = useMemo(() => [
+    cardAnimation1,
+    cardAnimation2,
+    cardAnimation3,
+    cardAnimation4,
+  ], [cardAnimation1, cardAnimation2, cardAnimation3, cardAnimation4]);
+
+  // Use the custom dashboard hook
+  const {
+    stats,
+    financialStats,
+    notifications,
+    unreadCount,
+    isLoading,
+    refetchAll,
+    markAllAsRead,
+  } = useAdminDashboard(selectedPeriod);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refetchAll();
+    setRefreshing(false);
   };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Admin Dashboard</Text>
-        <Text style={styles.subtitle}>System Administration</Text>
-      </View>
-      
-      <View style={styles.content}>
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>3</Text>
-            <Text style={styles.statLabel}>Active Salons</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>24</Text>
-            <Text style={styles.statLabel}>Total Staff</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>156</Text>
-            <Text style={styles.statLabel}>Today&apos;s Bookings</Text>
-          </View>
-        </View>
+  const handleNotificationPress = () => {
+    setShowNotifications(true);
+    markAllAsRead();
+  };
 
-        <View style={styles.menuSection}>
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuText}>User Management</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuText}>Salon Management</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuText}>System Settings</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuText}>Reports & Analytics</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.menuItem}>
-            <Text style={styles.menuText}>Support Tickets</Text>
-          </TouchableOpacity>
-        </View>
-        
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
+  const handlePeriodChange = (period: PeriodType) => {
+    if (period === selectedPeriod) return;
+    setIsChangingPeriod(true);
+    setSelectedPeriod(period);
+    setTimeout(() => setIsChangingPeriod(false), 500);
+  };
+
+  // Mock profile data for admin
+  const displayName = 'System Administrator';
+  const initials = 'AD';
+  const greeting = getGreeting();
+
+  return (
+    <View style={styles.mainContainer}>
+      {/* Dashboard Header */}
+      <DashboardHeader
+        displayName={displayName}
+        initials={initials}
+        greeting={greeting}
+        unreadCount={unreadCount}
+        onNotificationPress={handleNotificationPress}
+      />
+
+      {/* Scrollable Content */}
+      <ScrollView
+        style={styles.scrollableContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing || isLoading} onRefresh={handleRefresh} />
+        }
+      >
+        {/* Summary Cards */}
+        {stats && (
+          <SummaryCards
+            stats={stats}
+            cardAnimations={cardAnimations}
+          />
+        )}
+
+        {/* Quick Actions */}
+        <QuickActions />
+
+        {/* Period Selector */}
+        <PeriodSelector
+          selectedPeriod={selectedPeriod}
+          onPeriodChange={handlePeriodChange}
+        />
+
+        {/* Financial Stats */}
+        {!isChangingPeriod && financialStats.length > 0 && (
+          <FinancialStats financialStats={financialStats} />
+        )}
+      </ScrollView>
+
+      {/* Notification Modal */}
+      <NotificationModal
+        visible={showNotifications}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        onClose={() => setShowNotifications(false)}
+        onMarkAllAsRead={markAllAsRead}
+      />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-    padding: 20,
-  },
-  header: {
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  content: {
-    flex: 1,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginHorizontal: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#007AFF',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  menuSection: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  menuItem: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  menuText: {
-    fontSize: 16,
-    color: '#1F2937',
-  },
-  logoutButton: {
-    backgroundColor: '#EF4444',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  logoutText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-});

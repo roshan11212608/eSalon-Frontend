@@ -48,12 +48,12 @@ export default function AdminLayout() {
         <Tabs.Screen
           name="salons"
           options={{
-            title: 'Salons',
+            title: 'Salon',
             tabBarIcon: ({ color, size, focused }) => (
-              <Ionicons 
-                name={focused ? 'storefront' : 'storefront-outline'} 
-                size={size} 
-                color={color} 
+              <Ionicons
+                name={focused ? 'storefront' : 'storefront-outline'}
+                size={size}
+                color={color}
               />
             ),
           }}
@@ -104,6 +104,14 @@ export default function AdminLayout() {
         {/* Hidden screens */}
         <Tabs.Screen
           name="dashboard/index"
+          options={{ href: null }}
+        />
+        <Tabs.Screen
+          name="salons/index"
+          options={{ href: null }}
+        />
+        <Tabs.Screen
+          name="salons/[id]"
           options={{ href: null }}
         />
       </Tabs>

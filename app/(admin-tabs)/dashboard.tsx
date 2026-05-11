@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { Redirect } from 'expo-router';
-import AdminDashboard from '@/src/modules/dashboard/admin/screens/DashboardScreen';
+import AdminDashboard from '@/src/modules/dashboard/admin/AdminDashboard';
 import { StorageService } from '@/src/services/storage/storageService';
 
 export default function AdminDashboardScreen() {
