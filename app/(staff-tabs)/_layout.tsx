@@ -118,6 +118,38 @@ export default function StaffTabsLayout() {
             href: null
           }}
         />
+
+        {/* Hide profile sub-routes from tabs */}
+        <Tabs.Screen
+          name="profile/index"
+          options={{
+            href: null
+          }}
+        />
+        <Tabs.Screen
+          name="profile/edit"
+          options={{
+            href: null
+          }}
+        />
+        <Tabs.Screen
+          name="profile/privacy"
+          options={{
+            href: null
+          }}
+        />
+        <Tabs.Screen
+          name="profile/help"
+          options={{
+            href: null
+          }}
+        />
+        <Tabs.Screen
+          name="profile/change-password"
+          options={{
+            href: null
+          }}
+        />
       </Tabs>
     </SafeAreaView>
   );

@@ -5,8 +5,22 @@ import 'react-native-reanimated';
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useColorScheme } from 'react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { authStore } from '@/src/store';
 import { StorageService } from '@/src/services/storage/storageService';
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -99,29 +113,31 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AuthProvider>
-        <>
-          <StatusBar style="auto" />
-          <Stack screenOptions={{ headerShown: false }}>
-            {/* Splash screen */}
-            <Stack.Screen name="splash" />
-            
-            {/* Auth screens */}
-            <Stack.Screen name="auth/login" />
-            <Stack.Screen name="auth/register" />
-            
-            {/* Owner tabs */}
-            <Stack.Screen name="(owner-tabs)" />
-            
-            {/* Staff tabs */}
-            <Stack.Screen name="(staff-tabs)" />
-            
-            {/* Admin */}
-            <Stack.Screen name="(admin-tabs)" />
-          </Stack>
-        </>
-      </AuthProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <AuthProvider>
+          <>
+            <StatusBar style="auto" />
+            <Stack screenOptions={{ headerShown: false }}>
+              {/* Splash screen */}
+              <Stack.Screen name="splash" />
+              
+              {/* Auth screens */}
+              <Stack.Screen name="auth/login" />
+              <Stack.Screen name="auth/register" />
+              
+              {/* Owner tabs */}
+              <Stack.Screen name="(owner-tabs)" />
+              
+              {/* Staff tabs */}
+              <Stack.Screen name="(staff-tabs)" />
+              
+              {/* Admin */}
+              <Stack.Screen name="(admin-tabs)" />
+            </Stack>
+          </>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

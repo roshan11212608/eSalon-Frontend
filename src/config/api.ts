@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 /**
  * Centralized API Configuration
  * 
@@ -14,22 +16,35 @@
 const __DEV__ = process.env.NODE_ENV !== 'production';
 
 // Default local IP fallback for development
-const DEFAULT_DEV_URL = 'http://192.168.0.5:8080/api';
+// NOTE: For web development, localhost works better than IP addresses
+const DEFAULT_DEV_URL = Platform.OS === 'web'
+  ? 'http://localhost:8080/api'
+  : 'http://192.168.0.8:8080/api';
 
 // API Configuration
 export const API_CONFIG = {
-  // API URL from environment variable or fallback
-  BASE_URL: process.env.EXPO_PUBLIC_API_URL || (__DEV__ ? DEFAULT_DEV_URL : 'https://api.esalon.com/api'),
-  
+  // API URL: Use env variable only for web, use IP fallback for mobile
+  BASE_URL: Platform.OS === 'web' && process.env.EXPO_PUBLIC_API_URL
+    ? process.env.EXPO_PUBLIC_API_URL
+    : (__DEV__ ? DEFAULT_DEV_URL : 'https://api.esalon.com/api'),
+
   // Environment from environment variable or NODE_ENV
   ENVIRONMENT: process.env.EXPO_PUBLIC_ENV || (__DEV__ ? 'development' : 'production'),
-  
+
   // Request timeout in milliseconds (from env or default 8000ms)
   TIMEOUT: parseInt(process.env.EXPO_PUBLIC_API_TIMEOUT || '8000', 10),
-  
+
   // Retry count for failed requests (from env or default 3)
   RETRY_COUNT: parseInt(process.env.EXPO_PUBLIC_API_RETRY_COUNT || '3', 10),
 };
+
+// Log the configuration for debugging
+console.log('API Configuration:', {
+  BASE_URL: API_CONFIG.BASE_URL,
+  ENVIRONMENT: API_CONFIG.ENVIRONMENT,
+  PLATFORM: Platform.OS,
+  EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL,
+});
 
 /**
  * Get the appropriate base URL based on environment
@@ -69,6 +84,7 @@ export const API_ENDPOINTS = {
     HEALTH: '/auth/',
     SEND_OTP: '/auth/send-otp',
     VERIFY_OTP: '/auth/verify-otp',
+    RESET_PASSWORD: '/auth/reset-password',
   },
   
   // Profile

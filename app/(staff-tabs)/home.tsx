@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { Redirect } from 'expo-router';
-import StaffDashboard from '@/src/modules/dashboard/staff/screens/DashboardScreen';
+import StaffDashboard from '@/src/modules/dashboard/staff/StaffDashboard';
 import { StorageService } from '@/src/services/storage/storageService';
 
 export default function StaffHomeScreen() {

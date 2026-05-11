@@ -27,6 +27,12 @@ export interface VerifyOtpRequest {
   otp: string;
 }
 
+export interface ResetPasswordRequest {
+  email: string;
+  otp: string;
+  newPassword: string;
+}
+
 export interface AuthResponseData {
   token: string;
   refreshToken: string;
@@ -200,6 +206,20 @@ export class AuthService {
         throw error;
       }
       throw new Error(error.response?.data?.message || 'Failed to verify OTP');
+    }
+  }
+
+  // Reset Password
+  static async resetPassword(request: ResetPasswordRequest): Promise<string> {
+    try {
+      const response = await apiService.post<ApiResponse<string>>(API_ENDPOINTS.AUTH.RESET_PASSWORD, request);
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Reset password error:', error);
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new Error(error.response?.data?.message || 'Failed to reset password');
     }
   }
 }

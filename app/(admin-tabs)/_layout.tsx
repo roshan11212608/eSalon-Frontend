@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,8 +11,8 @@ export default function AdminLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: '#780115',
-          tabBarInactiveTintColor: '#6B7280',
+          tabBarActiveTintColor: '#f7b638',
+          tabBarInactiveTintColor: '#666666',
           tabBarStyle: {
             backgroundColor: '#FFFFFF',
             borderTopWidth: 1,
@@ -32,22 +32,79 @@ export default function AdminLayout() {
         }}
       >
         <Tabs.Screen
-          name="dashboard/index"
+          name="dashboard"
           options={{
             title: 'Dashboard',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="grid-outline" size={size} color={color} />
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons 
+                name={focused ? 'grid' : 'grid-outline'} 
+                size={size} 
+                color={color} 
+              />
             ),
           }}
         />
+        
         <Tabs.Screen
-          name="userManagement/index"
+          name="salons"
           options={{
-            title: 'Users',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="people-outline" size={size} color={color} />
+            title: 'Salons',
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons 
+                name={focused ? 'storefront' : 'storefront-outline'} 
+                size={size} 
+                color={color} 
+              />
             ),
           }}
+        />
+        
+        <Tabs.Screen
+          name="plans"
+          options={{
+            title: 'Plans',
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons 
+                name={focused ? 'card' : 'card-outline'} 
+                size={size} 
+                color={color} 
+              />
+            ),
+          }}
+        />
+        
+        <Tabs.Screen
+          name="revenue"
+          options={{
+            title: 'Revenue',
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons 
+                name={focused ? 'cash' : 'cash-outline'} 
+                size={size} 
+                color={color} 
+              />
+            ),
+          }}
+        />
+        
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Profile',
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons 
+                name={focused ? 'person' : 'person-outline'} 
+                size={size} 
+                color={color} 
+              />
+            ),
+          }}
+        />
+        
+        {/* Hidden screens */}
+        <Tabs.Screen
+          name="dashboard/index"
+          options={{ href: null }}
         />
       </Tabs>
     </SafeAreaView>

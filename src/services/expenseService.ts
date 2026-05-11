@@ -35,6 +35,11 @@ class ExpenseService {
     return response.data.data;
   }
 
+  async getCurrentMonthExpenses(shopId: number): Promise<Expense[]> {
+    const response = await apiService.get(`/expenses/shop/${shopId}/current-month`);
+    return response.data.data;
+  }
+
   async getExpensesByDateRange(shopId: number, startDate: string, endDate: string): Promise<Expense[]> {
     const response = await apiService.get(`/expenses/shop/${shopId}/range`, {
       params: { start: startDate, end: endDate }

@@ -292,7 +292,7 @@ export class PaymentService {
       }
       
       const response = await apiService.get<ApiResponse<PaginatedResponse<Payment>>>(
-        `/api/payments?${params.toString()}`
+        `/payments?${params.toString()}`
       );
       return response.data.data;
     } catch (error: any) {

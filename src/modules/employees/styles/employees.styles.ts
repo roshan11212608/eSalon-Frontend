@@ -87,6 +87,15 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
   },
+  headerActions: {
+    position: 'absolute',
+    right: 20,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  headerEditButton: {
+    backgroundColor: '#fff9e6',
+  },
   title: {
     fontSize: 20,
     fontWeight: '700',
@@ -783,5 +792,29 @@ export const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f7b638',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 20,
+    alignSelf: 'flex-start',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  editButtonText: {
+    marginLeft: 8,
+    color: '#1a1a1a',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });

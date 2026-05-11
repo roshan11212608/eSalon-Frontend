@@ -2,10 +2,12 @@
 import { useState, useEffect } from 'react';
 import { ProfileService } from '../../../services/profileService';
 
-export const useProfileData = (userId: number) => {
+export const useProfileData = (userId: number, refreshKey?: number) => {
   const [profile, setProfile] = useState<any | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  console.log('useProfileData - Initial state:', { loading, userId });
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -14,6 +16,10 @@ export const useProfileData = (userId: number) => {
         setError(null);
         
         console.log('useProfileData - Loading profile for userId:', userId);
+        
+        // Add 2 second delay for loader visibility
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         const profileData = await ProfileService.getProfileData(userId);
         console.log('useProfileData - Profile data received:', profileData);
         setProfile(profileData);
@@ -25,10 +31,12 @@ export const useProfileData = (userId: number) => {
       }
     };
 
-    if (userId) {
+    if (userId && userId > 0) {
       loadProfile();
+    } else {
+      setLoading(false);
     }
-  }, [userId]);
+  }, [userId, refreshKey]);
 
   const updateProfile = async (profileData: any) => {
     try {

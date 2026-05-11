@@ -56,6 +56,8 @@ export const styles = StyleSheet.create({
   avatarContainer: {
     marginBottom: 12,
     position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   avatar: {

@@ -119,7 +119,10 @@ export default function AddPayment() {
       setSelectedStaff(null);
       setShowSuccessMessage(false);
       setShowConfirmDialog(false);
-    }, [])
+      
+      // Refresh staff list
+      fetchStaff();
+    }, [fetchStaff])
   );
 
   const paymentMethods: PaymentMethod[] = [PaymentMethod.CASH, PaymentMethod.ONLINE];
@@ -376,7 +379,10 @@ export default function AddPayment() {
           activeOpacity={1}
           onPress={() => setShowStaffDropdown(false)}
         >
-          <View style={styles.modalContent}>
+          <View 
+            style={styles.modalContent}
+            onStartShouldSetResponder={() => true}
+          >
             <Text style={styles.modalTitle}>Select Staff</Text>
             <ScrollView style={styles.modalList}>
               {staffList.length === 0 ? (

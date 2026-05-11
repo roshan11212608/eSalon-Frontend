@@ -3,130 +3,133 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#780115',
-  },
-
-  scrollView: {
-    flex: 1,
-  },
-
-  scrollViewContent: {
-    flexGrow: 1,
-  },
-
-  // Logo Section
-  logoSection: {
-    alignItems: 'center',
-    paddingTop: 60,
-    paddingBottom: 40,
-  },
-
-  logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    backgroundColor: '#f7b638',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#f7b638',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-
-  logoText: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 2,
-    marginBottom: 8,
-  },
-
-  tagline: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-    letterSpacing: 0.5,
-  },
-
-  // Card Section
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 32,
-    marginHorizontal: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 24,
-    elevation: 12,
-    marginBottom: 40,
+    backgroundColor: '#ffffff',
   },
 
   // Header
   header: {
     flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 32,
-  },
-
-  backButton: {
-    marginRight: 16,
-  },
-
-  backButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#780115',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e5e5',
   },
 
   title: {
-    fontSize: 28,
-    fontWeight: '600',
-    color: '#780115',
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    letterSpacing: 1,
+  },
+
+  // Content
+  content: {
     flex: 1,
   },
 
-  // Form
+  // Avatar Section
+  avatarSection: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#e5e5e5',
+  },
+
+  avatarWrapper: {
+    position: 'relative',
+    marginBottom: 8,
+  },
+
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+
+  avatarPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  avatarEditIcon: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#f7b638',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+  },
+
+  avatarHint: {
+    fontSize: 12,
+    color: '#888888',
+    textAlign: 'center',
+  },
+
+  // Form Group
   formGroup: {
-    marginBottom: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#e5e5e5',
   },
 
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#780115',
+    fontWeight: '500',
+    color: '#1a1a1a',
     marginBottom: 8,
-    letterSpacing: 0.3,
   },
 
   input: {
+    backgroundColor: '#f5f5f5',
     borderWidth: 1,
-    borderColor: '#dddddd',
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    minHeight: 52,
-    fontSize: 16,
+    borderColor: '#e5e5e5',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 14,
     color: '#1a1a1a',
   },
 
+  readOnlyField: {
+    backgroundColor: '#f5f5f5',
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+    borderRadius: 8,
+    padding: 12,
+  },
+
+  readOnlyText: {
+    fontSize: 14,
+    color: '#888888',
+  },
+
   textArea: {
-    height: 100,
+    minHeight: 80,
     textAlignVertical: 'top',
   },
 
   // Button
   saveButton: {
     backgroundColor: '#f7b638',
-    borderRadius: 12,
-    paddingVertical: 16,
+    margin: 16,
+    paddingVertical: 12,
+    borderRadius: 10,
     alignItems: 'center',
-    marginBottom: 20,
-    minHeight: 52,
-    justifyContent: 'center',
   },
 
   saveButtonDisabled: {
@@ -134,9 +137,38 @@ export const styles = StyleSheet.create({
   },
 
   saveButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#1a1a1a',
-    letterSpacing: 0.5,
+  },
+
+  // Cancel Button
+  cancelButton: {
+    backgroundColor: '#f5f5f5',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666666',
+  },
+});
+
+// Route-specific styles
+export const routeStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  content: {
+    padding: 0,
   },
 });

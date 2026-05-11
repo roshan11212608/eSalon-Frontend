@@ -21,6 +21,12 @@ export default function Shop() {
       case 'expenses':
         router.push('/expenses' as any);
         break;
+      case 'subscriptions':
+        router.push('/(owner-tabs)/subscriptions' as any);
+        break;
+      case 'products':
+        router.push('/(owner-tabs)/products' as any);
+        break;
       default:
         console.log(`${screen} navigation not implemented yet`);
         break;
@@ -66,6 +72,24 @@ export default function Shop() {
                   <Ionicons name="wallet" size={18} color="#f7b638" />
                 </View>
                 <Text style={styles.menuText}>Expenses</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#c7c7c7" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation('subscriptions')}>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuIcon}>
+                  <Ionicons name="card" size={18} color="#f7b638" />
+                </View>
+                <Text style={styles.menuText}>Subscriptions</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#c7c7c7" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => handleNavigation('products')}>
+              <View style={styles.menuItemContent}>
+                <View style={styles.menuIcon}>
+                  <Ionicons name="cube" size={18} color="#f7b638" />
+                </View>
+                <Text style={styles.menuText}>Products</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color="#c7c7c7" />
             </TouchableOpacity>

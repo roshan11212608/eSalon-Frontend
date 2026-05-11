@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Image } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { StorageService } from '../../services/storage/storageService';
@@ -10,13 +10,27 @@ import { useProfileData } from './hooks/useProfileData';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { styles } from './styles/ProfileManagement.styles';
 
-export default function ProfileManagement() {
+interface ProfileManagementProps {
+  editRoute?: any;
+  privacyRoute?: any;
+  helpRoute?: any;
+}
+
+export default function ProfileManagement({ editRoute = '/profile/edit', privacyRoute = '/profile/privacy', helpRoute = '/profile/help' }: ProfileManagementProps) {
   const router = useRouter();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   
   const authState = useAuthStore();
   const userId = authState.user?.id ? Number(authState.user.id) : 0;
-  const { profile, loading, error } = useProfileData(userId);
+  const { profile, loading, error } = useProfileData(userId, refreshKey);
+
+  // Refresh profile data when screen comes into focus (e.g., after editing)
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshKey(prev => prev + 1);
+    }, [])
+  );
 
   const handleLogout = async () => {
     Haptics.notificationAsync();
@@ -43,27 +57,18 @@ export default function ProfileManagement() {
 
   const handleEditProfile = () => {
     Haptics.impactAsync();
-    router.push('/profile/edit');
+    router.push(editRoute);
   };
 
   const handlePrivacySecurity = () => {
     Haptics.impactAsync();
-    router.push('/profile/privacy');
+    router.push(privacyRoute);
   };
 
   const handleHelpSupport = () => {
     Haptics.impactAsync();
-    router.push('/profile/help');
+    router.push(helpRoute);
   };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#f7b638" />
-        <Text style={styles.loadingText}>Loading profile...</Text>
-      </View>
-    );
-  }
 
   if (error) {
     return (
@@ -108,12 +113,19 @@ export default function ProfileManagement() {
         <View style={styles.mainContent}>
           {/* Profile Card */}
           <View style={styles.profileCard}>
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#f7b638" />
+                <Text style={styles.loadingText}>Loading profile...</Text>
+              </View>
+            ) : (
+              <View>
               <View style={styles.avatarContainer}>
-                {profile?.avatarUrl ? (
-                  <Image source={{ uri: profile.avatarUrl }} style={styles.avatarImage} />
+                {profile?.avatarUrl || authState.user?.avatar ? (
+                  <Image source={{ uri: profile?.avatarUrl || authState.user?.avatar }} style={styles.avatarImage} />
                 ) : (
                   <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{getInitials(profile?.name || 'U')}</Text>
+                    <Text style={styles.avatarText}>{getInitials(profile?.name || authState.user?.name || 'U')}</Text>
                   </View>
                 )}
               </View>
@@ -165,6 +177,8 @@ export default function ProfileManagement() {
               )}
               </View>
             </View>
+            )}
+          </View>
           
           {/* Menu Section */}
           <View style={styles.menuSection}>

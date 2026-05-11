@@ -121,15 +121,22 @@ export default function ActivityList() {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
+    
+    // Reset time to midnight for accurate day comparison
+    const dateMidnight = new Date(date);
+    dateMidnight.setHours(0, 0, 0, 0);
+    const nowMidnight = new Date(now);
+    nowMidnight.setHours(0, 0, 0, 0);
+    
+    const diffTime = dateMidnight.getTime() - nowMidnight.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays === 0) {
       return 'Today, ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (diffDays === 1) {
+    } else if (diffDays === -1) {
       return 'Yesterday, ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (diffDays < 7) {
-      return `${diffDays} days ago`;
+    } else if (diffDays > -7 && diffDays < 0) {
+      return `${Math.abs(diffDays)} days ago`;
     } else {
       return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }

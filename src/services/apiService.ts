@@ -76,11 +76,16 @@ apiClient.interceptors.request.use(
   async (config) => {
     try {
       const token = await StorageService.getToken();
+      console.log('API Request Interceptor - Token retrieved:', token ? `Bearer ${token.substring(0, 20)}...` : 'NO TOKEN');
+      console.log('API Request Interceptor - Request URL:', config.baseURL, config.url);
       if (token) {
         config.headers = {
           ...config.headers,
           Authorization: `Bearer ${token}`,
         } as any;
+        console.log('API Request Interceptor - Authorization header set');
+      } else {
+        console.warn('API Request Interceptor - No token available, request will be unauthenticated');
       }
     } catch (error) {
       console.warn('Failed to get auth token:', error);

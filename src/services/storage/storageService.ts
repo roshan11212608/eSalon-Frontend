@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -9,6 +10,68 @@ const STORAGE_KEYS = {
   SHOP_ID: 'shop_id',
   USER_DATA: 'user_data'
 };
+
+// Hybrid storage that uses localStorage on web as fallback
+class HybridStorage {
+  private static isWeb(): boolean {
+    return Platform.OS === 'web';
+  }
+
+  static async getItem(key: string): Promise<string | null> {
+    try {
+      // Try AsyncStorage first
+      const value = await AsyncStorage.getItem(key);
+      if (value !== null) {
+        return value;
+      }
+      
+      // Fallback to localStorage on web
+      if (this.isWeb() && typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem(key);
+      }
+      
+      return null;
+    } catch (error) {
+      console.error(`Storage getItem error for key ${key}:`, error);
+      // Try localStorage as emergency fallback
+      if (this.isWeb() && typeof window !== 'undefined' && window.localStorage) {
+        return window.localStorage.getItem(key);
+      }
+      return null;
+    }
+  }
+
+  static async setItem(key: string, value: string): Promise<void> {
+    try {
+      // Always try AsyncStorage
+      await AsyncStorage.setItem(key, value);
+      
+      // Also save to localStorage on web for redundancy
+      if (this.isWeb() && typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(key, value);
+      }
+    } catch (error) {
+      console.error(`Storage setItem error for key ${key}:`, error);
+      // Try localStorage as emergency fallback
+      if (this.isWeb() && typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(key, value);
+      }
+    }
+  }
+
+  static async removeItem(key: string): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(key);
+      
+      // Also remove from localStorage on web
+      if (this.isWeb() && typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem(key);
+      }
+    } catch (error) {
+      console.error(`Storage removeItem error for key ${key}:`, error);
+    }
+  }
+}
 
 // Types
 export type UserRole = 'owner' | 'staff' | 'admin';
@@ -39,7 +102,9 @@ export class StorageService {
   // Get token
   static async getToken(): Promise<string | null> {
     try {
-      return await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
+      const token = await HybridStorage.getItem(STORAGE_KEYS.TOKEN);
+      console.log('StorageService.getToken:', token ? 'Token exists' : 'NO TOKEN');
+      return token;
     } catch (error) {
       console.error('Error getting token:', error);
       return null;
@@ -49,7 +114,7 @@ export class StorageService {
   // Get refresh token
   static async getRefreshToken(): Promise<string | null> {
     try {
-      return await AsyncStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+      return await HybridStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
     } catch (error) {
       console.error('Error getting refresh token:', error);
       return null;
@@ -59,7 +124,7 @@ export class StorageService {
   // Get role
   static async getRole(): Promise<UserRole | null> {
     try {
-      const role = await AsyncStorage.getItem(STORAGE_KEYS.ROLE);
+      const role = await HybridStorage.getItem(STORAGE_KEYS.ROLE);
       return role as UserRole | null;
     } catch (error) {
       console.error('Error getting role:', error);
@@ -70,7 +135,7 @@ export class StorageService {
   // Get isFirstTime
   static async getIsFirstTime(): Promise<boolean> {
     try {
-      const isFirstTime = await AsyncStorage.getItem(STORAGE_KEYS.IS_FIRST_TIME);
+      const isFirstTime = await HybridStorage.getItem(STORAGE_KEYS.IS_FIRST_TIME);
       return isFirstTime === 'true';
     } catch (error) {
       console.error('Error getting isFirstTime:', error);
@@ -81,7 +146,7 @@ export class StorageService {
   // Get shopId
   static async getShopId(): Promise<string | null> {
     try {
-      return await AsyncStorage.getItem(STORAGE_KEYS.SHOP_ID);
+      return await HybridStorage.getItem(STORAGE_KEYS.SHOP_ID);
     } catch (error) {
       console.error('Error getting shopId:', error);
       return null;
@@ -123,7 +188,9 @@ export class StorageService {
   // Save token
   static async setToken(token: string): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.TOKEN, token);
+      console.log('StorageService.setToken: Saving token...');
+      await HybridStorage.setItem(STORAGE_KEYS.TOKEN, token);
+      console.log('StorageService.setToken: Token saved successfully');
     } catch (error) {
       console.error('Error setting token:', error);
       throw error;
@@ -133,7 +200,7 @@ export class StorageService {
   // Save refresh token
   static async setRefreshToken(refreshToken: string): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+      await HybridStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
     } catch (error) {
       console.error('Error setting refresh token:', error);
       throw error;
@@ -143,7 +210,7 @@ export class StorageService {
   // Save role
   static async setRole(role: UserRole): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.ROLE, role);
+      await HybridStorage.setItem(STORAGE_KEYS.ROLE, role);
     } catch (error) {
       console.error('Error setting role:', error);
       throw error;
@@ -153,7 +220,7 @@ export class StorageService {
   // Save isFirstTime
   static async setIsFirstTime(isFirstTime: boolean): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.IS_FIRST_TIME, isFirstTime.toString());
+      await HybridStorage.setItem(STORAGE_KEYS.IS_FIRST_TIME, isFirstTime.toString());
     } catch (error) {
       console.error('Error setting isFirstTime:', error);
       throw error;
@@ -163,7 +230,7 @@ export class StorageService {
   // Save shopId
   static async setShopId(shopId: string): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.SHOP_ID, shopId);
+      await HybridStorage.setItem(STORAGE_KEYS.SHOP_ID, shopId);
     } catch (error) {
       console.error('Error setting shopId:', error);
       throw error;
@@ -198,12 +265,12 @@ export class StorageService {
   static async clearAuthData(): Promise<void> {
     try {
       await Promise.all([
-        AsyncStorage.removeItem(STORAGE_KEYS.TOKEN),
-        AsyncStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN),
-        AsyncStorage.removeItem(STORAGE_KEYS.ROLE),
-        AsyncStorage.removeItem(STORAGE_KEYS.IS_FIRST_TIME),
-        AsyncStorage.removeItem(STORAGE_KEYS.SHOP_ID),
-        AsyncStorage.removeItem(STORAGE_KEYS.USER_DATA)
+        HybridStorage.removeItem(STORAGE_KEYS.TOKEN),
+        HybridStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN),
+        HybridStorage.removeItem(STORAGE_KEYS.ROLE),
+        HybridStorage.removeItem(STORAGE_KEYS.IS_FIRST_TIME),
+        HybridStorage.removeItem(STORAGE_KEYS.SHOP_ID),
+        HybridStorage.removeItem(STORAGE_KEYS.USER_DATA)
       ]);
     } catch (error) {
       console.error('Error clearing auth data:', error);
@@ -220,7 +287,7 @@ export class StorageService {
   // Get user data
   static async getUserData(): Promise<UserData | null> {
     try {
-      const userDataJson = await AsyncStorage.getItem(STORAGE_KEYS.USER_DATA);
+      const userDataJson = await HybridStorage.getItem(STORAGE_KEYS.USER_DATA);
       return userDataJson ? JSON.parse(userDataJson) : null;
     } catch (error) {
       console.error('Error getting user data:', error);
@@ -231,7 +298,7 @@ export class StorageService {
   // Save user data
   static async setUserData(userData: UserData): Promise<void> {
     try {
-      await AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+      await HybridStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
     } catch (error) {
       console.error('Error setting user data:', error);
       throw error;

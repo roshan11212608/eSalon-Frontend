@@ -3,15 +3,18 @@ import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, ActivityInd
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useQueryClient } from '@tanstack/react-query';
 import { styles } from './styles/newActivity.styles';
 import EmployeeService from '@/src/services/employee/EmployeeService';
 import ShopServicesService from '@/src/services/shopServicesService';
 import { ActivityService } from '@/src/services/activityService';
 import { useAuthStore } from '@/src/shared/hooks/useAuthStore';
+import { DASHBOARD_QUERY_KEYS } from '@/src/modules/dashboard/owner/hooks/useOwnerDashboard';
 
 export default function NewAcitivity() {
   const router = useRouter();
   const authState = useAuthStore();
+  const queryClient = useQueryClient();
 
   const getCurrentDateTime = () => {
     const now = new Date();
@@ -335,6 +338,10 @@ export default function NewAcitivity() {
     const response = await ActivityService.addActivity(newActivity);
     console.log('Activity created successfully:', response);
 
+    // Invalidate dashboard cache to refresh data
+    queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEYS.all });
+    console.log('Dashboard cache invalidated');
+
     // Show success UI
     setShowSuccess(true);
     
@@ -358,7 +365,11 @@ export default function NewAcitivity() {
 };
 
 const handleCancel = () => {
-  Haptics.notificationAsync();
+  try {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+  } catch (error) {
+    // Haptics might not be available, ignore error
+  }
   router.back();
 };
 

@@ -60,7 +60,7 @@ export default function Employees() {
 
   const handleAddEmployee = () => {
     Haptics.notificationAsync();
-    router.push('/employees/addEmployees');
+    router.push('/(owner-tabs)/employees/addEmployees');
   };
 
   const handleDeleteEmployee = (id: string) => {
@@ -117,7 +117,7 @@ export default function Employees() {
 
   const handleEmployeePress = (employee: EmployeeType) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push(`/employees/employeesList?id=${employee.id}`);
+    router.push(`/(owner-tabs)/employees/employeesList?id=${employee.id}`);
   };
 
   if (isLoading) {

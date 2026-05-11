@@ -1,0 +1,25 @@
+import React from 'react';
+import { View, ScrollView } from 'react-native';
+import { useRouter } from 'expo-router';
+import PrivacySecurity from '@/src/modules/profile/privacy-security/PrivacySecurity';
+import { routeStyles } from '@/src/modules/profile/privacy-security/PrivacySecurity.styles';
+
+export default function StaffPrivacySecurityScreen() {
+  const router = useRouter();
+
+  const handleBack = () => {
+    router.back();
+  };
+
+  const handleChangePassword = () => {
+    router.push('/profile/change-password');
+  };
+
+  return (
+    <View style={routeStyles.container}>
+      <ScrollView style={routeStyles.scrollView} contentContainerStyle={routeStyles.content}>
+        <PrivacySecurity onBack={handleBack} onChangePassword={handleChangePassword} />
+      </ScrollView>
+    </View>
+  );
+}

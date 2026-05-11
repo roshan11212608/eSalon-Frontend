@@ -1,37 +1,91 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRef } from 'react';
+
+function CustomTabBar({ state, descriptors, navigation }) {
+  const insets = useSafeAreaInsets();
+  const allowedRoutes = ['home', 'activity', 'shop', 'profile'];
+  const lastPressRef = useRef<{ [key: string]: number }>({});
+  const DOUBLE_TAP_DELAY = 300; // ms
+
+  return (
+    <View style={[styles.customTabBar, { paddingBottom: insets.bottom }]}>
+      {state.routes
+        .filter(route => allowedRoutes.includes(route.name))
+        .map((route, index) => {
+          const { options } = descriptors[route.key];
+          const isFocused = state.index === state.routes.indexOf(route);
+
+          const onPress = () => {
+            const now = Date.now();
+            const lastPress = lastPressRef.current[route.key] || 0;
+            const timeSinceLastPress = now - lastPress;
+
+            // Check if it's a double tap on the focused tab
+            if (isFocused && timeSinceLastPress < DOUBLE_TAP_DELAY) {
+              // Double tap on focused tab - navigate back
+              navigation.goBack();
+              lastPressRef.current[route.key] = 0;
+              return;
+            }
+
+            lastPressRef.current[route.key] = now;
+
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
+
+          let iconName;
+          if (route.name === 'home') iconName = isFocused ? 'home' : 'home-outline';
+          else if (route.name === 'activity') iconName = isFocused ? 'notifications' : 'notifications-outline';
+          else if (route.name === 'shop') iconName = isFocused ? 'storefront' : 'storefront-outline';
+          else if (route.name === 'profile') iconName = isFocused ? 'person' : 'person-outline';
+
+          return (
+            <TouchableOpacity
+              key={route.key}
+              onPress={onPress}
+              style={styles.tabButton}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={iconName}
+                size={24}
+                color={isFocused ? '#ea6e08' : '#999999'}
+              />
+              <Text style={[styles.tabLabel, { color: isFocused ? '#780115' : '#999999' }]}>
+                {options.tabBarLabel || route.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+    </View>
+  );
+}
 
 export default function OwnerTabsLayout() {
-  const insets = useSafeAreaInsets();
-
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Tabs
+        tabBar={(props) => <CustomTabBar {...props} />}
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: '#780115',
-          tabBarInactiveTintColor: '#999999',
-          tabBarStyle: {
-            backgroundColor: '#FFFFFF',
-            borderTopWidth: 1,
-            borderTopColor: '#E5E5E5',
-            paddingBottom: 4,
-            paddingTop: 4,
-            height: 25 + insets.bottom,
-            justifyContent: 'space-around',
-          },
-          tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: '500',
-          },
         }}
       >
         <Tabs.Screen
           name="home"
           options={{
             title: 'Home',
+            tabBarLabel: 'Home',
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons 
                 name={focused ? 'home' : 'home-outline'} 
@@ -46,6 +100,7 @@ export default function OwnerTabsLayout() {
           name="activity"
           options={{
             title: 'Activity',
+            tabBarLabel: 'Activity',
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons 
                 name={focused ? 'notifications' : 'notifications-outline'} 
@@ -60,6 +115,7 @@ export default function OwnerTabsLayout() {
           name="shop"
           options={{
             title: 'Shop',
+            tabBarLabel: 'Shop',
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons 
                 name={focused ? 'storefront' : 'storefront-outline'} 
@@ -74,213 +130,17 @@ export default function OwnerTabsLayout() {
           name="profile"
           options={{
             title: 'Profile',
+            tabBarLabel: 'Profile',
             tabBarIcon: ({ color, size, focused }) => (
-              <Ionicons 
-                name={focused ? 'person' : 'person-outline'} 
-                size={size} 
-                color={color} 
+              <Ionicons
+                name={focused ? 'person' : 'person-outline'}
+                size={size}
+                color={color}
               />
             ),
           }}
         />
-        
-        {/* Hide these screens from tab bar */}
-        <Tabs.Screen
-          name="employees"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="employees/index"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="employees/addEmployees"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="employees/employeesList"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="expenses"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="expenses/index"
-          options={{
-            href: null
-          }}
-        />
-        <Tabs.Screen
-          name="expenses/addExpenses"
-          options={{
-            href: null
-          }}
-        />
-        
-        
-        
-        <Tabs.Screen
-          name="reports"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="reports/index"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="reports/activity-report"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="reports/payment-report"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="reports/expense-report"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="reports/staff-performance"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="reports/service-analytics"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="reports/financial-summary"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="reports/appointment-report"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="reports/[period]"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="payments"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="payments/index"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="payments/addPayment"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="payments/paymentsList"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="payments/staffPayments"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="shopServices"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="shopServices/index"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="shopServices/addNewServices"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="profile/edit"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="activity/list"
-          options={{
-            href: null
-          }}
-        />
-        
-        <Tabs.Screen
-          name="activity/new"
-          options={{
-            href: null
-          }}
-        />
+
       </Tabs>
     </SafeAreaView>
   );
@@ -291,29 +151,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#780115',
   },
-  header: {
-    backgroundColor: '#780115',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginHorizontal: 12,
-    marginBottom: 4,
-    borderRadius: 16,
-    shadowColor: '#f7b638',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.6,
-    shadowRadius: 24,
-    elevation: 12,
+  customTabBar: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5E5',
+    paddingTop: 8,
+    paddingHorizontal: 16,
+    justifyContent: 'space-around',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#f7b638',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: '#f7b638',
-    letterSpacing: 2,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 4,
+  tabButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 4,
+    flex: 1,
+  },
+  tabLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 4,
+    textTransform: 'capitalize',
   },
 });

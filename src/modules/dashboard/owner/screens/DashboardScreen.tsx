@@ -1,502 +1,190 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, Animated } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { StorageService } from '@/src/services/storage/storageService';
+import React, { useState, useRef, useMemo } from 'react';
+import { View, ScrollView, RefreshControl, Animated, ActivityIndicator } from 'react-native';
+import { styles } from '../styles/ownerDashboard.styles';
+import { useOwnerDashboard } from '../hooks/useOwnerDashboard';
+import { PeriodType } from '../types/dashboard.types';
+import { DEFAULT_VALUES, ANIMATION_CONFIG, getGreeting, DASHBOARD_SCREEN } from '../config/dashboardConfig';
+import DashboardHeader from '../components/DashboardHeader';
+import SummaryCards from '../components/SummaryCards';
+import PeriodSelector from '../components/PeriodSelector';
+import FinancialStats from '../components/FinancialStats';
+import RevenueCharts from '../components/RevenueCharts';
+import NotificationModal from '../components/NotificationModal';
+import ErrorState from '../components/ErrorState';
+import EmptyState from '../components/EmptyState';
+import QuickActions from '../components/QuickActions';
+import PeriodSelectorLoader from '../components/PeriodSelectorLoader';
+import { SummaryCardSkeleton, StatCardSkeleton, ChartSkeleton } from '../components/SkeletonLoader';
 
 export default function OwnerDashboardScreen() {
-  console.log('OwnerDashboardScreen: Component rendering...');
-  
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>(DEFAULT_VALUES.INITIAL_PERIOD);
   const [refreshing, setRefreshing] = useState(false);
-  const [fadeAnim] = useState(new Animated.Value(0));
-  const [shopId, setShopId] = useState<string | null>(null);
-  
-  // Get shopId from backend API
-  useEffect(() => {
-    const fetchShopId = async () => {
-      try {
-        const token = await StorageService.getToken();
-        const userData = await StorageService.getUserData();
-        
-        if (!token) {
-          console.log('No token found, cannot fetch shopId');
-          return;
-        }
-        
-        if (!userData || !userData.id) {
-          console.log('No user data found, cannot fetch shopId');
-          return;
-        }
+  const [isChangingPeriod, setIsChangingPeriod] = useState(false);
 
-        const userId = parseInt(userData.id);
-        console.log('Fetching shopId for userId:', userId);
+  // Create animation values for summary cards
+  const cardAnimation1 = useRef(new Animated.Value(ANIMATION_CONFIG.CARDS.initialOpacity)).current;
+  const cardAnimation2 = useRef(new Animated.Value(ANIMATION_CONFIG.CARDS.initialOpacity)).current;
+  const cardAnimation3 = useRef(new Animated.Value(ANIMATION_CONFIG.CARDS.initialOpacity)).current;
+  const cardAnimation4 = useRef(new Animated.Value(ANIMATION_CONFIG.CARDS.initialOpacity)).current;
 
-        // Fetch user profile from backend using correct endpoint
-        const response = await fetch(`https://wicked-seas-scream.loca.lt/api/profile/${userId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
+  const cardAnimations = useMemo(() => [
+    cardAnimation1,
+    cardAnimation2,
+    cardAnimation3,
+    cardAnimation4,
+  ], [cardAnimation1, cardAnimation2, cardAnimation3, cardAnimation4]);
 
-        if (response.ok) {
-          const data = await response.json();
-          console.log('User profile data:', data);
-          const shopIdFromBackend = data.data?.shopId || data.shopId;
-          console.log('ShopId from backend:', shopIdFromBackend);
-          
-          if (shopIdFromBackend) {
-            setShopId(shopIdFromBackend.toString());
-            // Also save it to StorageService for future use
-            await StorageService.setShopId(shopIdFromBackend.toString());
-          }
-        } else {
-          console.error('Failed to fetch user profile:', response.status);
-        }
-      } catch (error) {
-        console.error('Error fetching shopId from backend:', error);
-        
-        // Fallback to StorageService
-        try {
-          const authData = await StorageService.getAuthData();
-          const directShopId = await StorageService.getShopId();
-          setShopId(authData.shopId || directShopId || null);
-        } catch (storageError) {
-          console.error('Error loading shopId from storage:', storageError);
-          setShopId(null);
-        }
-      }
-    };
-    
-    fetchShopId();
-  }, []);
-  
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim]);
-  
-  const handleQuickAction = (action: string) => {
-    console.log(`Quick action: ${action}`);
-    // Add haptic feedback
-    Haptics.notificationAsync();
-  };
+  // Use the custom dashboard hook with React Query
+  const {
+    profile,
+    activityStats,
+    financialSummary,
+    notifications,
+    unreadCount,
+    isInitialLoading,
+    isRefetching,
+    error,
+    hasError,
+    refetchAll,
+    markAllAsRead,
+  } = useOwnerDashboard(selectedPeriod);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
+    await refetchAll();
+    setRefreshing(false);
   };
 
-  try {
+  const handleNotificationPress = () => {
+    setShowNotifications(true);
+    markAllAsRead();
+  };
+
+  const handlePeriodChange = (period: PeriodType) => {
+    if (period === selectedPeriod) return;
+    setIsChangingPeriod(true);
+    setSelectedPeriod(period);
+    // Hide loader after a short delay to allow data to load
+    setTimeout(() => setIsChangingPeriod(false), 1000);
+  };
+
+  // Get display name and initials from profile
+  const displayName = profile?.name || DEFAULT_VALUES.DISPLAY_NAME;
+  const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const greeting = getGreeting();
+
+  // Display counts for summary cards
+  const displayCounts = useMemo(() => ({
+    today: activityStats?.todayCount || 0,
+    yesterday: activityStats?.yesterdayCount || 0,
+    week: activityStats?.weekCount || 0,
+    month: activityStats?.monthCount || 0,
+  }), [activityStats]);
+
+  if (hasError) {
     return (
-      <ScrollView 
-        style={styles.container} 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps={true}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#007AFF"
-          />
-        }
-      >
-        <Animated.View style={[styles.animatedContainer, { opacity: fadeAnim }]}>
-          <View style={styles.header}>
-            <View style={styles.headerContent}>
-              <View>
-                <Text style={styles.title}>Owner Dashboard</Text>
-                <Text style={styles.subtitle}>Welcome back!</Text>
-                {shopId && <Text style={styles.shopIdText}>Shop ID: {shopId}</Text>}
-              </View>
-            </View>
-          </View>
-        </Animated.View>
-        
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>12</Text>
-            <Text style={styles.statLabel}>Today&apos;s Appointments</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>8</Text>
-            <Text style={styles.statLabel}>Active Staff</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>$2,450</Text>
-            <Text style={styles.statLabel}>Today&apos;s Revenue</Text>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
-          <View style={styles.quickActionsContainer}>
-            <TouchableOpacity 
-              style={styles.quickActionButton} 
-              onPress={() => handleQuickAction('new-appointment')}
-            >
-              <Ionicons name="calendar" size={24} color="#007AFF" />
-              <Text style={styles.quickActionText}>New Appointment</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.quickActionButton} 
-              onPress={() => handleQuickAction('manage-staff')}
-            >
-              <Ionicons name="people" size={24} color="#007AFF" />
-              <Text style={styles.quickActionText}>Manage Staff</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.quickActionButton} 
-              onPress={() => handleQuickAction('view-reports')}
-            >
-              <Ionicons name="bar-chart" size={24} color="#007AFF" />
-              <Text style={styles.quickActionText}>View Reports</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.quickActionButton} 
-              onPress={() => handleQuickAction('settings')}
-            >
-              <Ionicons name="settings" size={24} color="#007AFF" />
-              <Text style={styles.quickActionText}>Settings</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recent Appointments</Text>
-          <View style={styles.appointmentItem}>
-            <View style={styles.appointmentInfo}>
-              <Text style={styles.appointmentName}>Sarah Johnson</Text>
-              <Text style={styles.appointmentService}>Haircut & Styling</Text>
-              <Text style={styles.appointmentTime}>10:30 AM</Text>
-            </View>
-            <View style={styles.appointmentStatus}>
-              <Text style={styles.statusText}>Confirmed</Text>
-            </View>
-          </View>
-          
-          <View style={styles.appointmentItem}>
-            <View style={styles.appointmentInfo}>
-              <Text style={styles.appointmentName}>Mike Davis</Text>
-              <Text style={styles.appointmentService}>Beard Trim</Text>
-              <Text style={styles.appointmentTime}>11:00 AM</Text>
-            </View>
-            <View style={styles.appointmentStatus}>
-              <Text style={[styles.statusText, styles.statusPending]}>Pending</Text>
-            </View>
-          </View>
-          
-          <View style={styles.appointmentItem}>
-            <View style={styles.appointmentInfo}>
-              <Text style={styles.appointmentName}>Emma Wilson</Text>
-              <Text style={styles.appointmentService}>Full Color</Text>
-              <Text style={styles.appointmentTime}>2:00 PM</Text>
-            </View>
-            <View style={styles.appointmentStatus}>
-              <Text style={styles.statusText}>Confirmed</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Staff Status</Text>
-          <View style={styles.staffItem}>
-            <View style={styles.staffInfo}>
-              <Text style={styles.staffName}>John Smith</Text>
-              <Text style={styles.staffRole}>Senior Stylist</Text>
-            </View>
-            <View style={styles.staffStatus}>
-              <View style={[styles.statusDot, styles.statusActive]} />
-              <Text style={styles.statusText}>Active</Text>
-            </View>
-          </View>
-          
-          <View style={styles.staffItem}>
-            <View style={styles.staffInfo}>
-              <Text style={styles.staffName}>Lisa Chen</Text>
-              <Text style={styles.staffRole}>Color Specialist</Text>
-            </View>
-            <View style={styles.staffStatus}>
-              <View style={[styles.statusDot, styles.statusActive]} />
-              <Text style={styles.statusText}>Active</Text>
-            </View>
-          </View>
-          
-          <View style={styles.staffItem}>
-            <View style={styles.staffInfo}>
-              <Text style={styles.staffName}>Tom Brown</Text>
-              <Text style={styles.staffRole}>Junior Stylist</Text>
-            </View>
-            <View style={styles.staffStatus}>
-              <View style={[styles.statusDot, styles.statusInactive]} />
-              <Text style={styles.statusText}>Off Duty</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-          <View style={styles.activityItem}>
-            <View style={styles.activityContent}>
-              <Text style={styles.activityText}>New appointment booked</Text>
-              <Text style={styles.activityTime}>2 hours ago</Text>
-            </View>
-            <Ionicons name="calendar" size={16} color="#6B7280" />
-          </View>
-          
-          <View style={styles.activityItem}>
-            <View style={styles.activityContent}>
-              <Text style={styles.activityText}>Staff member checked in</Text>
-              <Text style={styles.activityTime}>3 hours ago</Text>
-            </View>
-            <Ionicons name="person-add" size={16} color="#6B7280" />
-          </View>
-          
-          <View style={styles.activityItem}>
-            <View style={styles.activityContent}>
-              <Text style={styles.activityText}>Payment received</Text>
-              <Text style={styles.activityTime}>5 hours ago</Text>
-            </View>
-            <Ionicons name="card" size={16} color="#6B7280" />
-          </View>
-        </View>
-      </ScrollView>
-    );
-  } catch (error) {
-    console.error('OwnerDashboardScreen: Error rendering component:', error);
-    return (
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Error Loading Dashboard</Text>
-        </View>
-      </ScrollView>
+      <View style={styles.mainContainer}>
+        <ErrorState error={error || DASHBOARD_SCREEN.FALLBACK_ERROR_MESSAGE} onRetry={refetchAll} />
+      </View>
     );
   }
+
+  return (
+    <View style={styles.mainContainer}>
+      {/* Dashboard Header */}
+      <DashboardHeader
+        displayName={displayName}
+        initials={initials}
+        greeting={greeting}
+        unreadCount={unreadCount}
+        onNotificationPress={handleNotificationPress}
+      />
+
+      {/* Scrollable Content */}
+      <ScrollView
+        style={styles.scrollableContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing || isRefetching} onRefresh={handleRefresh} />
+        }
+      >
+        {/* Activity Summary */}
+        {isInitialLoading ? (
+          <View style={styles.activitySummarySection}>
+            <ActivityIndicator size="small" color={DASHBOARD_SCREEN.LOADING_INDICATOR_COLOR} style={{ marginBottom: 16 }} />
+            <View style={styles.summaryContainer}>
+              {[1, 2, 3, 4].map((i) => <SummaryCardSkeleton key={i} />)}
+            </View>
+          </View>
+        ) : (
+          activityStats && (
+            <SummaryCards
+              displayCounts={displayCounts}
+              cardAnimations={cardAnimations}
+            />
+          )
+        )}
+
+        {/* Quick Actions */}
+        <QuickActions />
+
+        {/* Period Selector */}
+        {isChangingPeriod ? (
+          <PeriodSelectorLoader />
+        ) : (
+          <PeriodSelector
+            selectedPeriod={selectedPeriod}
+            onPeriodChange={handlePeriodChange}
+          />
+        )}
+
+        {/* Financial Stats */}
+        {isInitialLoading || isChangingPeriod ? (
+          <View style={styles.statsContainer}>
+            {[1, 2, 3, 4].map((i) => <StatCardSkeleton key={i} />)}
+          </View>
+        ) : financialSummary?.financialStats && financialSummary.financialStats.length > 0 ? (
+          <FinancialStats financialStats={financialSummary.financialStats} />
+        ) : !isInitialLoading && !isChangingPeriod ? (
+          <EmptyState
+            icon={DASHBOARD_SCREEN.EMPTY_STATES.FINANCIAL.ICON}
+            title={DASHBOARD_SCREEN.EMPTY_STATES.FINANCIAL.TITLE}
+            subtitle={DASHBOARD_SCREEN.EMPTY_STATES.FINANCIAL.SUBTITLE}
+          />
+        ) : null}
+
+        {/* Revenue Charts */}
+        {isInitialLoading || isChangingPeriod ? (
+          <>
+            <ChartSkeleton />
+            <ChartSkeleton />
+            <ChartSkeleton />
+          </>
+        ) : financialSummary ? (
+          <RevenueCharts financialData={financialSummary} />
+        ) : !isInitialLoading && !isChangingPeriod ? (
+          <EmptyState
+            icon={DASHBOARD_SCREEN.EMPTY_STATES.CHARTS.ICON}
+            title={DASHBOARD_SCREEN.EMPTY_STATES.CHARTS.TITLE}
+            subtitle={DASHBOARD_SCREEN.EMPTY_STATES.CHARTS.SUBTITLE}
+          />
+        ) : null}
+      </ScrollView>
+
+      {/* Notification Modal */}
+      <NotificationModal
+        visible={showNotifications}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        onClose={() => setShowNotifications(false)}
+        onNotificationPress={(notification) => {
+          // Handle notification press if needed
+          console.log('Notification pressed:', notification);
+        }}
+        onMarkAllAsRead={markAllAsRead}
+      />
+    </View>
+  );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-    paddingBottom: 0,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 16,
-  },
-  animatedContainer: {
-    flex: 1,
-  },
-  header: {
-    padding: 16,
-    paddingBottom: 12,
-    marginBottom: 6,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flex: 1,
-  },
-    title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  shopIdText: {
-    fontSize: 14,
-    color: '#007AFF',
-    fontWeight: '600',
-    marginTop: 4,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginHorizontal: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#007AFF',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  section: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 16,
-  },
-  quickActionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  quickActionButton: {
-    width: '48%',
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  quickActionText: {
-    fontSize: 12,
-    color: '#1F2937',
-    marginTop: 8,
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  appointmentItem: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  appointmentInfo: {
-    flex: 1,
-  },
-  appointmentName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 2,
-  },
-  appointmentService: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 2,
-  },
-  appointmentTime: {
-    fontSize: 12,
-    color: '#007AFF',
-    fontWeight: '500',
-  },
-  appointmentStatus: {
-    alignItems: 'flex-end',
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#10B981',
-  },
-  statusPending: {
-    color: '#F59E0B',
-  },
-  staffItem: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  staffInfo: {
-    flex: 1,
-  },
-  staffName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 2,
-  },
-  staffRole: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  staffStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  statusActive: {
-    backgroundColor: '#10B981',
-  },
-  statusInactive: {
-    backgroundColor: '#EF4444',
-  },
-  activityItem: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  activityContent: {
-    flex: 1,
-  },
-  activityText: {
-    fontSize: 14,
-    color: '#1F2937',
-    marginBottom: 2,
-  },
-  activityTime: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-});

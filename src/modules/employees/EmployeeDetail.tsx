@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { View, Text, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from './styles/employees.styles';
 import EmployeeService, { Employee as EmployeeType } from '@/src/services/employee/EmployeeService';
@@ -27,6 +27,7 @@ export default function EmployeeDetail() {
   const [activityFilter, setActivityFilter] = React.useState<'all' | 'today' | 'yesterday' | 'week' | 'date'>('all');
   const [selectedDate, setSelectedDate] = React.useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = React.useState(false);
+  const [refreshKey, setRefreshKey] = React.useState(0);
 
   const fetchEmployeeDetails = async (employeeId: string) => {
     try {
@@ -55,7 +56,16 @@ export default function EmployeeDetail() {
       fetchEmployeeDetails(id);
       fetchEmployeeActivities(id);
     }
-  }, [id, fetchEmployeeActivities]);
+  }, [id, fetchEmployeeActivities, refreshKey]);
+
+  // Refresh data when screen becomes focused (after returning from edit)
+  useFocusEffect(
+    useCallback(() => {
+      if (id) {
+        fetchEmployeeDetails(id);
+      }
+    }, [id])
+  );
 
   const handleClose = () => {
     router.back();
@@ -78,6 +88,13 @@ export default function EmployeeDetail() {
 
   const cancelDelete = () => {
     setShowDeleteModal(false);
+  };
+
+  const handleEdit = () => {
+    if (!id) return;
+    router.push(`/(owner-tabs)/employees/editEmployees?id=${id}`);
+    // Trigger refresh when user comes back
+    setTimeout(() => setRefreshKey(prev => prev + 1), 1000);
   };
 
   const formatDate = (dateString: string) => {
@@ -176,6 +193,13 @@ export default function EmployeeDetail() {
               </View>
               <Text style={styles.detailInfoText}>Joined: {employee.joinDate || 'No date'}</Text>
             </View>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={handleEdit}
+            >
+              <Ionicons name="create-outline" size={18} color="#1a1a1a" />
+              <Text style={styles.editButtonText}>Edit Employee</Text>
+            </TouchableOpacity>
           </View>
 
           {employee.shopId && (
@@ -190,7 +214,8 @@ export default function EmployeeDetail() {
             </View>
           )}
 
-          <View style={styles.detailSection}>
+          {/* Activity Logs section commented out */}
+          {/* <View style={styles.detailSection}>
             <Text style={styles.detailSectionTitle}>Activity Logs</Text>
             <View style={styles.activityFilterContainer}>
               <TouchableOpacity
@@ -258,7 +283,7 @@ export default function EmployeeDetail() {
                 ))}
               </View>
             )}
-          </View>
+          </View> */}
         </View>
       </ScrollView>
 
