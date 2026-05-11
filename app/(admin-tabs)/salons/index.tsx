@@ -1,3 +1,3 @@
-import { AdminSalonsScreen } from '@/src/modules/AdminModule';
+import { AdminSalonsList } from '@/src/modules/AdminModule';
 
-export default AdminSalonsScreen;
+export default AdminSalonsList;

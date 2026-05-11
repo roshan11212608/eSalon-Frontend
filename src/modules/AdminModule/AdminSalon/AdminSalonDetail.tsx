@@ -4,96 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { styles } from './styles/salonDetail.styles';
-
-type SalonStatus = 'active' | 'inactive' | 'pending';
-
-interface Salon {
-  id: number;
-  name: string;
-  owner: string;
-  email: string;
-  phone: string;
-  plan: string;
-  status: SalonStatus;
-  revenue: string;
-  joinedDate: string;
-  staffCount: number;
-}
-
-const mockSalons: Salon[] = [
-  {
-    id: 1,
-    name: 'Glamour Salon',
-    owner: 'Priya Sharma',
-    email: 'priya@glamour.com',
-    phone: '+91 98765 43210',
-    plan: 'Professional',
-    status: 'active',
-    revenue: '₹45,000',
-    joinedDate: '2024-01-15',
-    staffCount: 8,
-  },
-  {
-    id: 2,
-    name: 'Style Studio',
-    owner: 'Rahul Mehta',
-    email: 'rahul@stylestudio.com',
-    phone: '+91 98765 43211',
-    plan: 'Basic',
-    status: 'active',
-    revenue: '₹28,000',
-    joinedDate: '2024-02-20',
-    staffCount: 5,
-  },
-  {
-    id: 3,
-    name: 'Beauty Hub',
-    owner: 'Sneha Patel',
-    email: 'sneha@beautyhub.com',
-    phone: '+91 98765 43212',
-    plan: 'Enterprise',
-    status: 'pending',
-    revenue: '₹0',
-    joinedDate: '2024-03-10',
-    staffCount: 3,
-  },
-  {
-    id: 4,
-    name: 'Elegant Cuts',
-    owner: 'Amit Singh',
-    email: 'amit@elegantcuts.com',
-    phone: '+91 98765 43213',
-    plan: 'Professional',
-    status: 'active',
-    revenue: '₹52,000',
-    joinedDate: '2023-12-05',
-    staffCount: 12,
-  },
-  {
-    id: 5,
-    name: 'Royal Spa',
-    owner: 'Neha Kapoor',
-    email: 'neha@royalspa.com',
-    phone: '+91 98765 43214',
-    plan: 'Enterprise',
-    status: 'active',
-    revenue: '₹78,000',
-    joinedDate: '2023-11-20',
-    staffCount: 15,
-  },
-  {
-    id: 6,
-    name: 'Quick Trim',
-    owner: 'Vikram Joshi',
-    email: 'vikram@quicktrim.com',
-    phone: '+91 98765 43215',
-    plan: 'Basic',
-    status: 'inactive',
-    revenue: '₹12,000',
-    joinedDate: '2024-01-28',
-    staffCount: 2,
-  },
-];
+import { mockSalons } from './data/mockData';
 
 export default function AdminSalonDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -119,32 +30,34 @@ export default function AdminSalonDetail() {
     );
   }
 
-  const getStatusColor = (status: SalonStatus) => {
-    switch (status) {
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
       case 'active':
         return { bg: '#D1FAE5', text: '#059669' };
       case 'pending':
         return { bg: '#FEF3C7', text: '#D97706' };
       case 'inactive':
         return { bg: '#FEE2E2', text: '#DC2626' };
+      default:
+        return { bg: '#F3F4F6', text: '#6B7280' };
     }
   };
 
   const getPlanColor = (plan: string) => {
-    switch (plan) {
-      case 'Enterprise':
+    switch (plan.toLowerCase()) {
+      case 'enterprise':
         return '#780115';
-      case 'Professional':
+      case 'professional':
         return '#f7b638';
-      case 'Basic':
+      case 'basic':
         return '#6B7280';
       default:
         return '#6B7280';
     }
   };
 
-  const statusColor = getStatusColor(salon.status);
-  const planColor = getPlanColor(salon.plan);
+  const statusColor = getStatusColor(salon.subscription.status);
+  const planColor = getPlanColor(salon.subscription.plan);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -177,12 +90,12 @@ export default function AdminSalonDetail() {
           <View style={styles.statusRow}>
             <View style={[styles.statusBadge, { backgroundColor: statusColor.bg }]}>
               <Text style={[styles.statusText, { color: statusColor.text }]}>
-                {salon.status.toUpperCase()}
+                {salon.subscription.status.toUpperCase()}
               </Text>
             </View>
             <View style={[styles.planBadge, { backgroundColor: `${planColor}20` }]}>
               <Text style={[styles.planText, { color: planColor }]}>
-                {salon.plan}
+                {salon.subscription.plan}
               </Text>
             </View>
           </View>
@@ -197,7 +110,7 @@ export default function AdminSalonDetail() {
             </View>
             <View style={styles.content}>
               <Text style={styles.label}>Name</Text>
-              <Text style={styles.value}>{salon.owner}</Text>
+              <Text style={styles.value}>{salon.owner.name}</Text>
             </View>
           </View>
           <View style={styles.detailRow}>
@@ -206,7 +119,7 @@ export default function AdminSalonDetail() {
             </View>
             <View style={styles.content}>
               <Text style={styles.label}>Email</Text>
-              <Text style={styles.value}>{salon.email}</Text>
+              <Text style={styles.value}>{salon.owner.email}</Text>
             </View>
           </View>
           <View style={styles.detailRow}>
@@ -215,7 +128,7 @@ export default function AdminSalonDetail() {
             </View>
             <View style={styles.content}>
               <Text style={styles.label}>Phone</Text>
-              <Text style={styles.value}>{salon.phone}</Text>
+              <Text style={styles.value}>{salon.owner.phone}</Text>
             </View>
           </View>
         </View>
@@ -225,11 +138,52 @@ export default function AdminSalonDetail() {
           <Text style={styles.detailSectionTitle}>Business Details</Text>
           <View style={styles.detailRow}>
             <View style={styles.iconBox}>
+              <Ionicons name="business" size={20} color="#6B7280" />
+            </View>
+            <View style={styles.content}>
+              <Text style={styles.label}>Email</Text>
+              <Text style={styles.value}>{salon.business.email}</Text>
+            </View>
+          </View>
+          <View style={styles.detailRow}>
+            <View style={styles.iconBox}>
+              <Ionicons name="call" size={20} color="#6B7280" />
+            </View>
+            <View style={styles.content}>
+              <Text style={styles.label}>Phone</Text>
+              <Text style={styles.value}>{salon.business.phone}</Text>
+            </View>
+          </View>
+          <View style={styles.detailRow}>
+            <View style={styles.iconBox}>
+              <Ionicons name="location" size={20} color="#6B7280" />
+            </View>
+            <View style={styles.content}>
+              <Text style={styles.label}>Address</Text>
+              <Text style={styles.value}>{salon.business.address}</Text>
+            </View>
+          </View>
+          <View style={styles.detailRow}>
+            <View style={styles.iconBox}>
+              <Ionicons name="map" size={20} color="#6B7280" />
+            </View>
+            <View style={styles.content}>
+              <Text style={styles.label}>Location</Text>
+              <Text style={styles.value}>{salon.business.city}, {salon.business.state}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Subscription Info */}
+        <View style={styles.detailSection}>
+          <Text style={styles.detailSectionTitle}>Subscription Details</Text>
+          <View style={styles.detailRow}>
+            <View style={styles.iconBox}>
               <Ionicons name="card" size={20} color={planColor} />
             </View>
             <View style={styles.content}>
-              <Text style={styles.label}>Subscription Plan</Text>
-              <Text style={[styles.value, { color: planColor }]}>{salon.plan}</Text>
+              <Text style={styles.label}>Plan</Text>
+              <Text style={[styles.value, { color: planColor }]}>{salon.subscription.plan}</Text>
             </View>
           </View>
           <View style={styles.detailRow}>
@@ -237,17 +191,8 @@ export default function AdminSalonDetail() {
               <Ionicons name="cash" size={20} color="#10B981" />
             </View>
             <View style={styles.content}>
-              <Text style={styles.label}>Total Revenue</Text>
-              <Text style={styles.value}>{salon.revenue}</Text>
-            </View>
-          </View>
-          <View style={styles.detailRow}>
-            <View style={styles.iconBox}>
-              <Ionicons name="people" size={20} color="#6B7280" />
-            </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Staff Members</Text>
-              <Text style={styles.value}>{salon.staffCount}</Text>
+              <Text style={styles.label}>Monthly Fee</Text>
+              <Text style={styles.value}>{salon.subscription.monthlyFee}</Text>
             </View>
           </View>
           <View style={styles.detailRow}>
@@ -255,8 +200,49 @@ export default function AdminSalonDetail() {
               <Ionicons name="calendar" size={20} color="#6B7280" />
             </View>
             <View style={styles.content}>
-              <Text style={styles.label}>Joined Date</Text>
-              <Text style={styles.value}>{salon.joinedDate}</Text>
+              <Text style={styles.label}>Expiry Date</Text>
+              <Text style={styles.value}>{salon.subscription.expiryDate}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Performance Metrics */}
+        <View style={styles.detailSection}>
+          <Text style={styles.detailSectionTitle}>Performance Metrics</Text>
+          <View style={styles.detailRow}>
+            <View style={styles.iconBox}>
+              <Ionicons name="people" size={20} color="#6B7280" />
+            </View>
+            <View style={styles.content}>
+              <Text style={styles.label}>Staff Count</Text>
+              <Text style={styles.value}>{salon.metrics.staffCount}</Text>
+            </View>
+          </View>
+          <View style={styles.detailRow}>
+            <View style={styles.iconBox}>
+              <Ionicons name="trending-up" size={20} color="#10B981" />
+            </View>
+            <View style={styles.content}>
+              <Text style={styles.label}>Monthly Revenue</Text>
+              <Text style={styles.value}>{salon.metrics.monthlyRevenue}</Text>
+            </View>
+          </View>
+          <View style={styles.detailRow}>
+            <View style={styles.iconBox}>
+              <Ionicons name="calendar" size={20} color="#6B7280" />
+            </View>
+            <View style={styles.content}>
+              <Text style={styles.label}>Total Appointments</Text>
+              <Text style={styles.value}>{salon.metrics.totalAppointments}</Text>
+            </View>
+          </View>
+          <View style={styles.detailRow}>
+            <View style={styles.iconBox}>
+              <Ionicons name="people" size={20} color="#6B7280" />
+            </View>
+            <View style={styles.content}>
+              <Text style={styles.label}>Active Clients</Text>
+              <Text style={styles.value}>{salon.metrics.activeClients}</Text>
             </View>
           </View>
         </View>
