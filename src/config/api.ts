@@ -147,6 +147,12 @@ export const API_ENDPOINTS = {
     OWNER: (ownerId: number) => `/dashboard/owner/${ownerId}`,
     ADMIN: '/dashboard/admin',
   },
+
+  /** Admin: salons/shops registered via owner signup (`/auth/register`) */
+  ADMIN: {
+    SHOPS: '/admin/shops',
+    SHOP_BY_ID: (id: number) => `/admin/shops/${id}`,
+  },
   
   // Reports
   REPORTS: {

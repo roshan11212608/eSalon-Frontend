@@ -1,40 +1,34 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
 import { styles } from './styles/salonDetail.styles';
-import { mockSalons } from './data/mockData';
+import { AdminSalonService } from './services/adminSalonService';
 
 export default function AdminSalonDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const numericId = parseInt(id || '0', 10);
 
-  const salon = mockSalons.find((s) => s.id === parseInt(id || '0'));
-
-  if (!salon) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#1F2937" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Salon Not Found</Text>
-          <View style={{ width: 24 }} />
-        </View>
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color="#DC2626" />
-          <Text style={styles.errorText}>Salon not found</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  const {
+    data: salon,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['admin', 'registered-shops', numericId],
+    queryFn: () => AdminSalonService.getRegisteredShopById(numericId),
+    enabled: Number.isFinite(numericId) && numericId > 0,
+  });
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'active':
         return { bg: '#D1FAE5', text: '#059669' };
       case 'pending':
+      case 'trial':
         return { bg: '#FEF3C7', text: '#D97706' };
       case 'inactive':
         return { bg: '#FEE2E2', text: '#DC2626' };
@@ -55,6 +49,65 @@ export default function AdminSalonDetail() {
         return '#6B7280';
     }
   };
+
+  if (!numericId) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Salon Not Found</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={64} color="#DC2626" />
+          <Text style={styles.errorText}>Invalid salon</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Salon Details</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        <View style={styles.errorContainer}>
+          <ActivityIndicator size="large" color="#780115" />
+          <Text style={[styles.errorText, { marginTop: 12 }]}>Loading...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !salon) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Salon Not Found</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={64} color="#DC2626" />
+          <Text style={styles.errorText}>
+            {error instanceof Error ? error.message : 'Salon not found'}
+          </Text>
+          <TouchableOpacity style={{ marginTop: 16 }} onPress={() => refetch()}>
+            <Text style={{ color: '#780115', fontWeight: '600' }}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const statusColor = getStatusColor(salon.subscription.status);
   const planColor = getPlanColor(salon.subscription.plan);
@@ -77,14 +130,12 @@ export default function AdminSalonDetail() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Salon Icon */}
         <View style={styles.iconSection}>
           <View style={styles.iconContainer}>
             <Ionicons name="storefront" size={48} color="#780115" />
           </View>
         </View>
 
-        {/* Salon Name & Status */}
         <View style={styles.section}>
           <Text style={styles.salonName}>{salon.name}</Text>
           <View style={styles.statusRow}>
@@ -101,7 +152,6 @@ export default function AdminSalonDetail() {
           </View>
         </View>
 
-        {/* Owner Info */}
         <View style={styles.detailSection}>
           <Text style={styles.detailSectionTitle}>Owner Information</Text>
           <View style={styles.detailRow}>
@@ -133,7 +183,6 @@ export default function AdminSalonDetail() {
           </View>
         </View>
 
-        {/* Business Info */}
         <View style={styles.detailSection}>
           <Text style={styles.detailSectionTitle}>Business Details</Text>
           <View style={styles.detailRow}>
@@ -174,7 +223,6 @@ export default function AdminSalonDetail() {
           </View>
         </View>
 
-        {/* Subscription Info */}
         <View style={styles.detailSection}>
           <Text style={styles.detailSectionTitle}>Subscription Details</Text>
           <View style={styles.detailRow}>
@@ -206,7 +254,6 @@ export default function AdminSalonDetail() {
           </View>
         </View>
 
-        {/* Performance Metrics */}
         <View style={styles.detailSection}>
           <Text style={styles.detailSectionTitle}>Performance Metrics</Text>
           <View style={styles.detailRow}>
@@ -247,7 +294,6 @@ export default function AdminSalonDetail() {
           </View>
         </View>
 
-        {/* Action Buttons */}
         <View style={styles.actions}>
           <TouchableOpacity style={styles.actionButton}>
             <Ionicons name="call" size={20} color="#FFFFFF" />

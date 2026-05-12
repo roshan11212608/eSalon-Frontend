@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   View, 
   Text, 
@@ -7,11 +7,13 @@ import {
   TextInput, 
   FlatList, 
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
 import { styles } from './styles/salonsList.styles';
 import { StatCard } from './components/StatCard';
 import { SalonCard } from './components/SalonCard';
@@ -20,28 +22,33 @@ import {
   SalonStatus, 
   SubscriptionPlan
 } from './types/salon.types';
-import { mockSalons, statCards } from './data/mockData';
+import {
+  AdminSalonService,
+  buildStatCardsFromSalons,
+} from './services/adminSalonService';
 
 
-export default function AdminSalonsList({ navigation }: any = {}) {
+export default function AdminSalonsList() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<SalonStatus | 'all'>('all');
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | 'all'>('all');
-  const [isLoading, setIsLoading] = useState(false);
 
-  // Simulate loading state
-  useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+  const {
+    data: salons = [],
+    isLoading,
+    isRefetching,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ['admin', 'registered-shops'],
+    queryFn: () => AdminSalonService.listRegisteredShops(),
+  });
 
-  // Filter salons based on search and filters
+  const statCards = useMemo(() => buildStatCardsFromSalons(salons), [salons]);
+
   const filteredSalons = useMemo(() => {
-    return mockSalons.filter((salon) => {
+    return salons.filter((salon) => {
       const matchesSearch = searchQuery === '' || 
         salon.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         salon.owner.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -54,19 +61,12 @@ export default function AdminSalonsList({ navigation }: any = {}) {
 
       return matchesSearch && matchesStatus && matchesPlan;
     });
-  }, [searchQuery, selectedStatus, selectedPlan]);
+  }, [salons, searchQuery, selectedStatus, selectedPlan]);
 
-    
-  // Handle salon actions
   const handleSalonAction = (action: string, salon: Salon) => {
-    console.log('handleSalonAction called:', action, salon.name);
-    console.log('Router available:', !!router);
     switch (action) {
       case 'view':
-        console.log('View action triggered');
-        console.log('Navigating to:', `/AdminSalonDetail?id=${salon.id}`);
-        // Use Expo Router to navigate to AdminSalonDetail with salon ID
-        router.push(`/AdminSalonDetail?id=${salon.id}`);
+        router.push(`/(admin-tabs)/salons/${salon.id}`);
         break;
       case 'edit':
         Alert.alert('Edit Salon', `Edit ${salon.name}`);
@@ -77,6 +77,7 @@ export default function AdminSalonsList({ navigation }: any = {}) {
       case 'more':
         Alert.alert(
           'Choose an action',
+          undefined,
           [
             { text: 'Suspend', onPress: () => Alert.alert('Suspend', 'Salon suspended') },
             { text: 'Renew Subscription', onPress: () => Alert.alert('Renew', 'Subscription renewed') },
@@ -88,8 +89,6 @@ export default function AdminSalonsList({ navigation }: any = {}) {
     }
   };
 
-  
-  
   const renderSalonCard = ({ item }: { item: Salon }) => (
     <SalonCard 
       salon={item} 
@@ -128,7 +127,6 @@ export default function AdminSalonsList({ navigation }: any = {}) {
         </View>
         
         <View style={styles.content}>
-          {/* Skeleton Stats Cards */}
           <View style={styles.statsSection}>
             <View style={styles.statsGrid}>
               {[1, 2, 3, 4, 5, 6].map((item) => (
@@ -144,7 +142,6 @@ export default function AdminSalonsList({ navigation }: any = {}) {
             </View>
           </View>
 
-          {/* Skeleton Search */}
           <View style={styles.searchSection}>
             <View style={[styles.searchContainer, styles.skeletonCard]}>
               <View style={styles.skeletonSearchIcon} />
@@ -152,7 +149,6 @@ export default function AdminSalonsList({ navigation }: any = {}) {
             </View>
           </View>
 
-          {/* Skeleton Filters */}
           <View style={styles.filterSection}>
             <View style={[styles.filterContainer, styles.skeletonCard]}>
               <View style={styles.skeletonFilterRow}>
@@ -166,24 +162,47 @@ export default function AdminSalonsList({ navigation }: any = {}) {
         
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#780115" />
-          <Text style={styles.loadingText}>Loading amazing salons...</Text>
+          <Text style={styles.loadingText}>Loading salons...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  // Render salon list view
-  const renderSalonList = () => {
-    console.log('renderSalonList called');
+  if (error) {
     return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Salons Management</Text>
+        </View>
+        <View style={styles.emptyState}>
+          <Ionicons name="cloud-offline-outline" size={64} color="#CCCCCC" style={styles.emptyIcon} />
+          <Text style={styles.emptyText}>Could not load salons</Text>
+          <Text style={styles.emptySubtext}>{error instanceof Error ? error.message : 'Unknown error'}</Text>
+          <TouchableOpacity style={{ marginTop: 16, padding: 12 }} onPress={() => refetch()}>
+            <Text style={{ color: '#780115', fontWeight: '600' }}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Salons Management</Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Statistics Cards */}
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching && !isLoading}
+            onRefresh={() => refetch()}
+            tintColor="#780115"
+          />
+        }
+      >
         <View style={styles.statsSection}>
           <View style={styles.statsGrid}>
             {statCards.map((item) => (
@@ -194,7 +213,6 @@ export default function AdminSalonsList({ navigation }: any = {}) {
           </View>
         </View>
 
-        {/* Search Section */}
         <View style={styles.searchSection}>
           <View style={styles.searchContainer}>
             <Ionicons name="search" size={20} color="#9CA3AF" />
@@ -216,9 +234,7 @@ export default function AdminSalonsList({ navigation }: any = {}) {
           </View>
         </View>
 
-        {/* Filter Section */}
         <View style={styles.filterSection}>
-          {/* Status Filters */}
           <Text style={styles.filterLabel}>Status</Text>
           <View style={styles.filterContainer}>
             <View style={styles.filterRow}>
@@ -233,7 +249,6 @@ export default function AdminSalonsList({ navigation }: any = {}) {
             </View>
           </View>
 
-          {/* Plan Filters */}
           <View style={styles.planFilterContainer}>
             <Text style={styles.filterLabel}>Subscription Plan</Text>
             <View style={styles.filterContainer}>
@@ -247,14 +262,13 @@ export default function AdminSalonsList({ navigation }: any = {}) {
           </View>
         </View>
 
-        {/* Salons List */}
         <View style={styles.salonsSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
               All Salons ({filteredSalons.length})
             </Text>
             <Text style={styles.sectionSubtitle}>
-              {filteredSalons.length} of {mockSalons.length} salons
+              {filteredSalons.length} of {salons.length} salons
             </Text>
           </View>
 
@@ -278,9 +292,5 @@ export default function AdminSalonsList({ navigation }: any = {}) {
         </View>
       </ScrollView>
     </SafeAreaView>
-    );
-  };
-
-  // Main return statement - render salon list
-  return renderSalonList();
+  );
 }

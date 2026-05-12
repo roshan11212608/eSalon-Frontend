@@ -46,7 +46,7 @@ export default function AdminLayout() {
         />
         
         <Tabs.Screen
-          name="salons"
+          name="salons/index"
           options={{
             title: 'Salon',
             tabBarIcon: ({ color, size, focused }) => (
@@ -101,19 +101,8 @@ export default function AdminLayout() {
           }}
         />
         
-        {/* Hidden screens */}
-        <Tabs.Screen
-          name="dashboard/index"
-          options={{ href: null }}
-        />
-        <Tabs.Screen
-          name="salons/index"
-          options={{ href: null }}
-        />
-        <Tabs.Screen
-          name="salons/[id]"
-          options={{ href: null }}
-        />
+        {/* Stack/detail routes: not shown on tab bar */}
+        <Tabs.Screen name="salons/[id]" options={{ href: null }} />
       </Tabs>
     </SafeAreaView>
   );
