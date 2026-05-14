@@ -1,5 +1,5 @@
-import SubscriptionPlan from '../../../src/modules/subscriptions/SubscriptionPlan';
+import Subscriptions from '../../../src/modules/subscriptions/Subscriptions';
 
 export default function SubscriptionsScreen() {
-  return <SubscriptionPlan />;
+  return <Subscriptions />;
 }

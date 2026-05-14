@@ -117,20 +117,13 @@ export default function PaymentsList({ payments, onPaymentPress, onDeletePayment
             </View>
             <Text style={styles.descriptionText}>{item.description}</Text>
             
-            {item.paymentType === 'staff_payout' && item.commissionRate !== undefined && (
+            {item.paymentType === 'staff_payout' && item.netAmount !== undefined && (
               <View style={styles.commissionInfo}>
                 <View style={styles.commissionRow}>
-                  <Ionicons name="pricetag" size={12} color="#6B7280" />
-                  <Text style={styles.commissionText}>Commission: {item.commissionRate}%</Text>
-                  <Text style={styles.commissionAmount}>₹{item.commissionAmount?.toFixed(2)}</Text>
+                  <Ionicons name="wallet" size={12} color="#6B7280" />
+                  <Text style={styles.commissionText}>Net Payout:</Text>
+                  <Text style={styles.netAmount}>₹{item.netAmount.toFixed(2)}</Text>
                 </View>
-                {item.netAmount !== undefined && (
-                  <View style={styles.commissionRow}>
-                    <Ionicons name="wallet" size={12} color="#6B7280" />
-                    <Text style={styles.commissionText}>Net Payout:</Text>
-                    <Text style={styles.netAmount}>₹{item.netAmount.toFixed(2)}</Text>
-                  </View>
-                )}
               </View>
             )}
           </View>

@@ -20,7 +20,7 @@ import type {
 /** Loose DTO so minor backend naming differences still map */
 export interface RegisteredShopApi {
   id?: number;
-  shopId?: number;
+  shopId?: number | string;
   name?: string;
   shopName?: string;
   shopAddress?: string;
@@ -92,6 +92,13 @@ function coalesceId(row: RegisteredShopApi): number {
 
 function pickShopName(row: RegisteredShopApi): string {
   return (row.shopName || row.name || 'Salon').trim();
+}
+
+function pickShopId(row: RegisteredShopApi): string {
+  if (typeof row.shopId === 'string' && row.shopId.trim()) return row.shopId.trim();
+  if (typeof row.shopId === 'number' && !Number.isNaN(row.shopId)) return String(row.shopId);
+  if (typeof row.id === 'number' && !Number.isNaN(row.id)) return String(row.id);
+  return '—';
 }
 
 function pickOwnerName(row: RegisteredShopApi): string {
@@ -166,6 +173,7 @@ export function mapRegisteredShopToSalon(row: RegisteredShopApi): Salon {
 
   return {
     id,
+    shopId: pickShopId(row),
     name: pickShopName(row),
     owner: {
       name: pickOwnerName(row),

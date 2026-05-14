@@ -86,7 +86,7 @@ export default function Payments() {
         paymentMethod: p.paymentMethod.toLowerCase() as 'cash' | 'online',
         category: p.category,
         description: p.description || '',
-        date: p.paymentDate.split('T')[0],
+        date: p.paymentDate,
         status: p.status.toLowerCase() as 'pending' | 'verified' | 'completed' | 'cancelled' | 'rejected',
         createdAt: p.createdAt,
         commissionRate: p.commissionRate ? (typeof p.commissionRate === 'number' ? p.commissionRate : parseFloat(String(p.commissionRate))) : undefined,

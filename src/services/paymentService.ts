@@ -55,6 +55,7 @@ export interface CreatePaymentRequest {
   description?: string;
   paymentDate?: string;
   employeeId?: number;
+  planName?: string;
 }
 
 export interface ApiResponse<T> {

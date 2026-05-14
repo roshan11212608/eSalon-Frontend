@@ -1,108 +1,127 @@
 import { Tabs } from 'expo-router';
-import { StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRef } from 'react';
+
+function CustomTabBar({ state, descriptors, navigation }) {
+  const insets = useSafeAreaInsets();
+  const allowedRoutes = ['dashboard', 'management', 'profile'];
+  const lastPressRef = useRef<{ [key: string]: number }>({});
+  const DOUBLE_TAP_DELAY = 300; // ms
+
+  return (
+    <View style={[styles.customTabBar, { paddingBottom: insets.bottom }]}>
+      {state.routes
+        .filter(route => allowedRoutes.includes(route.name))
+        .map((route, index) => {
+          const { options } = descriptors[route.key];
+          const isFocused = state.index === state.routes.indexOf(route);
+
+          const onPress = () => {
+            const now = Date.now();
+            const lastPress = lastPressRef.current[route.key] || 0;
+            const timeSinceLastPress = now - lastPress;
+
+            if (isFocused && timeSinceLastPress < DOUBLE_TAP_DELAY) {
+              navigation.goBack();
+              lastPressRef.current[route.key] = 0;
+              return;
+            }
+
+            lastPressRef.current[route.key] = now;
+
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
+
+          let iconName;
+          if (route.name === 'dashboard') iconName = isFocused ? 'grid' : 'grid-outline';
+          else if (route.name === 'management') iconName = isFocused ? 'settings' : 'settings-outline';
+          else if (route.name === 'profile') iconName = isFocused ? 'person' : 'person-outline';
+
+          return (
+            <TouchableOpacity
+              key={route.key}
+              onPress={onPress}
+              style={styles.tabButton}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={iconName}
+                size={24}
+                color={isFocused ? '#ea6e08' : '#999999'}
+              />
+              <Text style={[styles.tabLabel, { color: isFocused ? '#780115' : '#999999' }]}>
+                {options.tabBarLabel || route.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+    </View>
+  );
+}
 
 export default function AdminLayout() {
-  const insets = useSafeAreaInsets();
-
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Tabs
+        tabBar={(props) => <CustomTabBar {...props} />}
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: '#f7b638',
-          tabBarInactiveTintColor: '#666666',
-          tabBarStyle: {
-            backgroundColor: '#FFFFFF',
-            borderTopWidth: 1,
-            borderTopColor: '#E5E7EB',
-            elevation: 8,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-            paddingBottom: insets.bottom,
-            height: 25 + insets.bottom,
-          },
-          tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: '500',
-          },
         }}
       >
         <Tabs.Screen
           name="dashboard"
           options={{
             title: 'Dashboard',
-            tabBarIcon: ({ color, size, focused }) => (
-              <Ionicons 
-                name={focused ? 'grid' : 'grid-outline'} 
-                size={size} 
-                color={color} 
-              />
-            ),
-          }}
-        />
-        
-        <Tabs.Screen
-          name="salons/index"
-          options={{
-            title: 'Salon',
+            tabBarLabel: 'Dashboard',
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons
-                name={focused ? 'storefront' : 'storefront-outline'}
+                name={focused ? 'grid' : 'grid-outline'}
                 size={size}
                 color={color}
               />
             ),
           }}
         />
-        
+
         <Tabs.Screen
-          name="plans"
+          name="management"
           options={{
-            title: 'Plans',
+            title: 'Management',
+            tabBarLabel: 'Management',
             tabBarIcon: ({ color, size, focused }) => (
-              <Ionicons 
-                name={focused ? 'card' : 'card-outline'} 
-                size={size} 
-                color={color} 
+              <Ionicons
+                name={focused ? 'settings' : 'settings-outline'}
+                size={size}
+                color={color}
               />
             ),
           }}
         />
-        
-        <Tabs.Screen
-          name="revenue"
-          options={{
-            title: 'Revenue',
-            tabBarIcon: ({ color, size, focused }) => (
-              <Ionicons 
-                name={focused ? 'cash' : 'cash-outline'} 
-                size={size} 
-                color={color} 
-              />
-            ),
-          }}
-        />
-        
+
         <Tabs.Screen
           name="profile"
           options={{
             title: 'Profile',
+            tabBarLabel: 'Profile',
             tabBarIcon: ({ color, size, focused }) => (
-              <Ionicons 
-                name={focused ? 'person' : 'person-outline'} 
-                size={size} 
-                color={color} 
+              <Ionicons
+                name={focused ? 'person' : 'person-outline'}
+                size={size}
+                color={color}
               />
             ),
           }}
         />
-        
-        {/* Stack/detail routes: not shown on tab bar */}
-        <Tabs.Screen name="salons/[id]" options={{ href: null }} />
       </Tabs>
     </SafeAreaView>
   );
@@ -113,38 +132,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#780115',
   },
-  header: {
-    backgroundColor: '#780115',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  logoContainer: {
+  customTabBar: {
     flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5E5',
+    paddingTop: 8,
+    paddingHorizontal: 16,
+    justifyContent: 'space-around',
     alignItems: 'center',
   },
-  logoTextContainer: {
-    marginLeft: 12,
-  },
-  logo: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    letterSpacing: 1,
-  },
-  adminTag: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    backgroundColor: 'rgba(247, 182, 56, 0.2)',
-    paddingHorizontal: 8,
+  tabButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 4,
-    borderRadius: 12,
-    overflow: 'hidden',
+    flex: 1,
+  },
+  tabLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 4,
+    textTransform: 'capitalize',
   },
 });

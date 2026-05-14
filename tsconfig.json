@@ -2,45 +2,19 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@/src/*": [
-        "./src/*"
-      ],
-      "@/components/*": [
-        "./src/shared/components/*"
-      ],
-      "@/hooks/*": [
-        "./src/shared/hooks/*"
-      ],
-      "@/constants/*": [
-        "./src/shared/constants/*"
-      ],
-      "@/theme/*": [
-        "./src/shared/theme/*"
-      ],
-      "@/services/*": [
-        "./src/services/*"
-      ],
-      "@/modules/*": [
-        "./src/modules/*"
-      ],
-      "@/store/*": [
-        "./src/store/*"
-      ],
-      "@/types/*": [
-        "./src/types/*"
-      ]
+      "@/*": ["./*"],
+      "@/src/*": ["./src/*"],
+      "@/components/*": ["./src/shared/components/*"],
+      "@/hooks/*": ["./src/shared/hooks/*"],
+      "@/constants/*": ["./src/shared/constants/*"],
+      "@/theme/*": ["./src/shared/theme/*"],
+      "@/services/*": ["./src/services/*"],
+      "@/modules/*": ["./src/modules/*"],
+      "@/store/*": ["./src/store/*"],
+      "@/types/*": ["./src/types/*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-  ]
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
 }

@@ -128,17 +128,57 @@ export const API_ENDPOINTS = {
     BY_SHOP: (shopId: number) => `/expenses/shop/${shopId}`,
   },
   
-  // Payments
+  // Shop Payments (Staff payouts, Customer receipts - note-taking)
+  SHOP_PAYMENT: {
+    BASE: '/shop-payments',
+    GET_ALL: '/shop-payments',
+    BY_ID: (id: number) => `/shop-payments/${id}`,
+    BY_SHOP: (shopId: number) => `/shop-payments/shop/${shopId}`,
+    BY_SHOP_AND_TYPE: (shopId: number, paymentType: string) => `/shop-payments/shop/${shopId}/type/${paymentType}`,
+    BY_SHOP_AND_STATUS: (shopId: number, status: string) => `/shop-payments/shop/${shopId}/status/${status}`,
+    BY_DATE_RANGE: (shopId: number) => `/shop-payments/shop/${shopId}/range`,
+    BY_EMPLOYEE: (employeeId: number) => `/shop-payments/employee/${employeeId}`,
+    BY_SHOP_AND_EMPLOYEE: (shopId: number, employeeId: number) => `/shop-payments/shop/${shopId}/employee/${employeeId}`,
+    CREATE: '/shop-payments',
+    UPDATE: (id: number) => `/shop-payments/${id}`,
+    COMPLETE: (id: number) => `/shop-payments/${id}/complete`,
+    CANCEL: (id: number) => `/shop-payments/${id}/cancel`,
+    VERIFY: (id: number) => `/shop-payments/${id}/verify`,
+    DELETE: (id: number) => `/shop-payments/${id}`,
+  },
+  
+  // Subscription Payments (Razorpay, eSewa - real transactions)
+  SUBSCRIPTION_PAYMENT: {
+    ORDER: '/subscription-payments/order',
+    RAZORPAY_VERIFY: '/subscription-payments/razorpay/verify',
+    NEPAL_UPLOAD_PROOF: '/subscription-payments/nepal/upload-proof',
+    ADMIN_PENDING: '/subscription-payments/admin/pending',
+    ADMIN_APPROVE: (id: number) => `/subscription-payments/admin/${id}/approve`,
+    ADMIN_REJECT: (id: number) => `/subscription-payments/admin/${id}/reject`,
+    BY_ID: (id: number) => `/subscription-payments/${id}`,
+    BY_SHOP: (shopId: number) => `/subscription-payments/shop/${shopId}`,
+  },
+  
+  // Legacy Payment endpoints (for backward compatibility)
   PAYMENT: {
     BASE: '/payments',
+    GET_ALL: '/payments',
     BY_ID: (id: number) => `/payments/${id}`,
     BY_SHOP: (shopId: number) => `/payments/shop/${shopId}`,
     BY_SHOP_AND_TYPE: (shopId: number, paymentType: string) => `/payments/shop/${shopId}/type/${paymentType}`,
     BY_SHOP_AND_STATUS: (shopId: number, status: string) => `/payments/shop/${shopId}/status/${status}`,
-    BY_SHOP_AND_EMPLOYEE: (shopId: number, employeeId: number) => `/payments/shop/${shopId}/employee/${employeeId}`,
+    BY_DATE_RANGE: (shopId: number) => `/payments/shop/${shopId}/range`,
     BY_EMPLOYEE: (employeeId: number) => `/payments/employee/${employeeId}`,
+    BY_SHOP_AND_EMPLOYEE: (shopId: number, employeeId: number) => `/payments/shop/${shopId}/employee/${employeeId}`,
+    CREATE: '/payments',
+    UPDATE: (id: number) => `/payments/${id}`,
     COMPLETE: (id: number) => `/payments/${id}/complete`,
     CANCEL: (id: number) => `/payments/${id}/cancel`,
+    VERIFY: (id: number) => `/payments/${id}/verify`,
+    DELETE: (id: number) => `/payments/${id}`,
+    SUBSCRIPTION_ORDER: '/payments/subscription/order',
+    RAZORPAY_VERIFY: '/payments/razorpay/verify',
+    NEPAL_UPLOAD_PROOF: '/payments/nepal/upload-proof',
   },
   
   // Dashboard
@@ -148,10 +188,20 @@ export const API_ENDPOINTS = {
     ADMIN: '/dashboard/admin',
   },
 
+  /** Public plan browsing – accessible to OWNER and ADMIN roles */
+  PLANS: {
+    ACTIVE: '/plans/active',
+  },
+
   /** Admin: salons/shops registered via owner signup (`/auth/register`) */
   ADMIN: {
     SHOPS: '/admin/shops',
     SHOP_BY_ID: (id: number) => `/admin/shops/${id}`,
+    PLANS: '/admin/plans',
+    PLAN_BY_ID: (id: number) => `/admin/plans/${id}`,
+    PLAN_CREATE: '/admin/plans',
+    PLAN_UPDATE: (id: number) => `/admin/plans/${id}`,
+    PLAN_DELETE: (id: number) => `/admin/plans/${id}`,
   },
   
   // Reports

@@ -1,11 +1,11 @@
-import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { styles } from './styles/salonDetail.styles';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React from 'react';
+import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AdminSalonService } from './services/adminSalonService';
+import { styles } from './styles/salonDetail.styles';
 
 export default function AdminSalonDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -25,44 +25,49 @@ export default function AdminSalonDetail() {
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'active':
-        return { bg: '#D1FAE5', text: '#059669' };
-      case 'pending':
-      case 'trial':
-        return { bg: '#FEF3C7', text: '#D97706' };
-      case 'inactive':
-        return { bg: '#FEE2E2', text: '#DC2626' };
-      default:
-        return { bg: '#F3F4F6', text: '#6B7280' };
+      case 'active':    return { solid: '#059669', bg: '#D1FAE5', text: '#059669' };
+      case 'trial':     return { solid: '#3B82F6', bg: '#EFF6FF', text: '#3B82F6' };
+      case 'expired':   return { solid: '#DC2626', bg: '#FEE2E2', text: '#DC2626' };
+      case 'suspended': return { solid: '#EA580C', bg: '#FFF7ED', text: '#EA580C' };
+      default:          return { solid: '#9CA3AF', bg: '#F3F4F6', text: '#6B7280' };
     }
   };
 
   const getPlanColor = (plan: string) => {
     switch (plan.toLowerCase()) {
-      case 'enterprise':
-        return '#780115';
-      case 'professional':
-        return '#f7b638';
-      case 'basic':
-        return '#6B7280';
-      default:
-        return '#6B7280';
+      case 'enterprise':   return '#780115';
+      case 'professional': return '#D97706';
+      default:             return '#6B7280';
     }
   };
 
-  if (!numericId) {
+  const getInitials = (name: string) =>
+    name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+
+  const renderHeader = (title: string) => (
+    <View style={styles.header}>
+      <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+        <Ionicons name="arrow-back" size={20} color="#1A1A2E" />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>{title}</Text>
+      <View style={{ width: 40 }} />
+    </View>
+  );
+
+  if (!numericId || error || (!isLoading && !salon)) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#1F2937" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Salon Not Found</Text>
-          <View style={{ width: 24 }} />
-        </View>
+        {renderHeader('Salon Details')}
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color="#DC2626" />
-          <Text style={styles.errorText}>Invalid salon</Text>
+          <Text style={styles.errorText}>
+            {error instanceof Error ? error.message : 'Salon not found'}
+          </Text>
+          {!!error && (
+            <TouchableOpacity style={styles.retryBtn} onPress={() => refetch()}>
+              <Text style={styles.retryText}>Retry</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </SafeAreaView>
     );
@@ -71,39 +76,10 @@ export default function AdminSalonDetail() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#1F2937" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Salon Details</Text>
-          <View style={{ width: 24 }} />
-        </View>
+        {renderHeader('Salon Details')}
         <View style={styles.errorContainer}>
           <ActivityIndicator size="large" color="#780115" />
-          <Text style={[styles.errorText, { marginTop: 12 }]}>Loading...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (error || !salon) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#1F2937" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Salon Not Found</Text>
-          <View style={{ width: 24 }} />
-        </View>
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color="#DC2626" />
-          <Text style={styles.errorText}>
-            {error instanceof Error ? error.message : 'Salon not found'}
-          </Text>
-          <TouchableOpacity style={{ marginTop: 16 }} onPress={() => refetch()}>
-            <Text style={{ color: '#780115', fontWeight: '600' }}>Retry</Text>
-          </TouchableOpacity>
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -111,199 +87,160 @@ export default function AdminSalonDetail() {
 
   const statusColor = getStatusColor(salon.subscription.status);
   const planColor = getPlanColor(salon.subscription.plan);
+  const initials = getInitials(salon.name);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Salon Details</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Ionicons name="pencil" size={20} color="#780115" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <Ionicons name="ellipsis-vertical" size={20} color="#1F2937" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      {renderHeader('Salon Details')}
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.iconSection}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="storefront" size={48} color="#780115" />
-          </View>
-        </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
-        <View style={styles.section}>
-          <Text style={styles.salonName}>{salon.name}</Text>
-          <View style={styles.statusRow}>
-            <View style={[styles.statusBadge, { backgroundColor: statusColor.bg }]}>
-              <Text style={[styles.statusText, { color: statusColor.text }]}>
-                {salon.subscription.status.toUpperCase()}
-              </Text>
+        {/* ── Hero Card ── */}
+        <View style={styles.heroCard}>
+          <View style={[styles.heroStripe, { backgroundColor: statusColor.solid }]} />
+          <View style={styles.heroBody}>
+            <View style={[styles.avatarRing, { borderColor: statusColor.solid }]}>
+              <View style={[styles.avatarCircle, { backgroundColor: `${statusColor.solid}18` }]}>
+                <Text style={[styles.avatarText, { color: statusColor.solid }]}>{initials}</Text>
+              </View>
             </View>
-            <View style={[styles.planBadge, { backgroundColor: `${planColor}20` }]}>
-              <Text style={[styles.planText, { color: planColor }]}>
-                {salon.subscription.plan}
-              </Text>
+            <Text style={styles.salonName}>{salon.name}</Text>
+            <View style={styles.shopIdRow}>
+              <Ionicons name="pricetag-outline" size={12} color="#9CA3AF" />
+              <Text style={styles.shopIdLabel}>Shop Id: </Text>
+              <Text style={styles.shopIdValue}>{salon.shopId}</Text>
             </View>
-          </View>
-        </View>
-
-        <View style={styles.detailSection}>
-          <Text style={styles.detailSectionTitle}>Owner Information</Text>
-          <View style={styles.detailRow}>
-            <View style={styles.iconBox}>
-              <Ionicons name="person" size={20} color="#780115" />
+            <View style={styles.badgeRow}>
+              <View style={[styles.badge, { backgroundColor: statusColor.bg }]}>
+                <Text style={[styles.badgeText, { color: statusColor.text }]}>
+                  {salon.subscription.status.toUpperCase()}
+                </Text>
+              </View>
+              <View style={[styles.badge, { backgroundColor: `${planColor}18` }]}>
+                <Text style={[styles.badgeText, { color: planColor, textTransform: 'capitalize' }]}>
+                  {salon.subscription.plan}
+                </Text>
+              </View>
+              {salon.isVerified && (
+                <View style={[styles.badge, { backgroundColor: '#D1FAE5' }]}>
+                  <Ionicons name="checkmark-circle" size={11} color="#059669" />
+                  <Text style={[styles.badgeText, { color: '#059669' }]}>Verified</Text>
+                </View>
+              )}
             </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Name</Text>
-              <Text style={styles.value}>{salon.owner.name}</Text>
-            </View>
-          </View>
-          <View style={styles.detailRow}>
-            <View style={styles.iconBox}>
-              <Ionicons name="mail" size={20} color="#6B7280" />
-            </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Email</Text>
-              <Text style={styles.value}>{salon.owner.email}</Text>
-            </View>
-          </View>
-          <View style={styles.detailRow}>
-            <View style={styles.iconBox}>
-              <Ionicons name="call" size={20} color="#6B7280" />
-            </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Phone</Text>
-              <Text style={styles.value}>{salon.owner.phone}</Text>
+            <View style={styles.dateRow}>
+              <Text style={styles.dateChip}>Joined {salon.dates.joinedDate}</Text>
+              <Text style={styles.dateChip}>Active {salon.dates.lastActive}</Text>
             </View>
           </View>
         </View>
 
-        <View style={styles.detailSection}>
-          <Text style={styles.detailSectionTitle}>Business Details</Text>
-          <View style={styles.detailRow}>
-            <View style={styles.iconBox}>
-              <Ionicons name="business" size={20} color="#6B7280" />
-            </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Email</Text>
-              <Text style={styles.value}>{salon.business.email}</Text>
-            </View>
+        {/* ── Owner ── */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.cardAccent, { backgroundColor: '#780115' }]} />
+            <Text style={styles.cardTitle}>Owner Information</Text>
           </View>
-          <View style={styles.detailRow}>
-            <View style={styles.iconBox}>
-              <Ionicons name="call" size={20} color="#6B7280" />
+          {[
+            { icon: 'person' as const,  color: '#780115', label: 'Name',  value: salon.owner.name },
+            { icon: 'mail' as const,    color: '#3B82F6', label: 'Email', value: salon.owner.email },
+            { icon: 'call' as const,    color: '#059669', label: 'Phone', value: salon.owner.phone },
+          ].map((row) => (
+            <View key={row.label} style={styles.infoRow}>
+              <View style={[styles.infoIcon, { backgroundColor: `${row.color}12` }]}>
+                <Ionicons name={row.icon} size={16} color={row.color} />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>{row.label}</Text>
+                <Text style={styles.infoValue}>{row.value}</Text>
+              </View>
             </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Phone</Text>
-              <Text style={styles.value}>{salon.business.phone}</Text>
-            </View>
-          </View>
-          <View style={styles.detailRow}>
-            <View style={styles.iconBox}>
-              <Ionicons name="location" size={20} color="#6B7280" />
-            </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Address</Text>
-              <Text style={styles.value}>{salon.business.address}</Text>
-            </View>
-          </View>
-          <View style={styles.detailRow}>
-            <View style={styles.iconBox}>
-              <Ionicons name="map" size={20} color="#6B7280" />
-            </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Location</Text>
-              <Text style={styles.value}>{salon.business.city}, {salon.business.state}</Text>
-            </View>
-          </View>
+          ))}
         </View>
 
-        <View style={styles.detailSection}>
-          <Text style={styles.detailSectionTitle}>Subscription Details</Text>
-          <View style={styles.detailRow}>
-            <View style={styles.iconBox}>
-              <Ionicons name="card" size={20} color={planColor} />
-            </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Plan</Text>
-              <Text style={[styles.value, { color: planColor }]}>{salon.subscription.plan}</Text>
-            </View>
+        {/* ── Business ── */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.cardAccent, { backgroundColor: '#3B82F6' }]} />
+            <Text style={styles.cardTitle}>Business Details</Text>
           </View>
-          <View style={styles.detailRow}>
-            <View style={styles.iconBox}>
-              <Ionicons name="cash" size={20} color="#10B981" />
+          {[
+            { icon: 'mail' as const,     color: '#3B82F6', label: 'Email',    value: salon.business.email },
+            { icon: 'call' as const,     color: '#059669', label: 'Phone',    value: salon.business.phone },
+            { icon: 'location' as const, color: '#EA580C', label: 'Address',  value: salon.business.address },
+            { icon: 'map' as const,      color: '#7C3AED', label: 'Location', value: `${salon.business.city}, ${salon.business.state}` },
+          ].map((row) => (
+            <View key={row.label} style={styles.infoRow}>
+              <View style={[styles.infoIcon, { backgroundColor: `${row.color}12` }]}>
+                <Ionicons name={row.icon} size={16} color={row.color} />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>{row.label}</Text>
+                <Text style={styles.infoValue}>{row.value}</Text>
+              </View>
             </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Monthly Fee</Text>
-              <Text style={styles.value}>{salon.subscription.monthlyFee}</Text>
-            </View>
-          </View>
-          <View style={styles.detailRow}>
-            <View style={styles.iconBox}>
-              <Ionicons name="calendar" size={20} color="#6B7280" />
-            </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Expiry Date</Text>
-              <Text style={styles.value}>{salon.subscription.expiryDate}</Text>
-            </View>
-          </View>
+          ))}
         </View>
 
-        <View style={styles.detailSection}>
-          <Text style={styles.detailSectionTitle}>Performance Metrics</Text>
-          <View style={styles.detailRow}>
-            <View style={styles.iconBox}>
-              <Ionicons name="people" size={20} color="#6B7280" />
-            </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Staff Count</Text>
-              <Text style={styles.value}>{salon.metrics.staffCount}</Text>
-            </View>
+        {/* ── Subscription ── */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.cardAccent, { backgroundColor: planColor }]} />
+            <Text style={styles.cardTitle}>Subscription</Text>
           </View>
-          <View style={styles.detailRow}>
-            <View style={styles.iconBox}>
-              <Ionicons name="trending-up" size={20} color="#10B981" />
+          {[
+            { icon: 'card' as const,     color: planColor,  label: 'Plan',        value: salon.subscription.plan },
+            { icon: 'cash' as const,     color: '#059669',  label: 'Monthly Fee', value: salon.subscription.monthlyFee },
+            { icon: 'calendar' as const, color: '#6B7280',  label: 'Expiry Date', value: salon.subscription.expiryDate },
+          ].map((row) => (
+            <View key={row.label} style={styles.infoRow}>
+              <View style={[styles.infoIcon, { backgroundColor: `${row.color}12` }]}>
+                <Ionicons name={row.icon} size={16} color={row.color} />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>{row.label}</Text>
+                <Text style={[styles.infoValue, { color: row.color }]}>{row.value}</Text>
+              </View>
             </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Monthly Revenue</Text>
-              <Text style={styles.value}>{salon.metrics.monthlyRevenue}</Text>
-            </View>
-          </View>
-          <View style={styles.detailRow}>
-            <View style={styles.iconBox}>
-              <Ionicons name="calendar" size={20} color="#6B7280" />
-            </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Total Appointments</Text>
-              <Text style={styles.value}>{salon.metrics.totalAppointments}</Text>
-            </View>
-          </View>
-          <View style={styles.detailRow}>
-            <View style={styles.iconBox}>
-              <Ionicons name="people" size={20} color="#6B7280" />
-            </View>
-            <View style={styles.content}>
-              <Text style={styles.label}>Active Clients</Text>
-              <Text style={styles.value}>{salon.metrics.activeClients}</Text>
-            </View>
-          </View>
+          ))}
         </View>
 
+        {/* ── Metrics ── */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={[styles.cardAccent, { backgroundColor: '#7C3AED' }]} />
+            <Text style={styles.cardTitle}>Performance Metrics</Text>
+          </View>
+          {[
+            { icon: 'people' as const,     color: '#780115', label: 'Staff Count',         value: String(salon.metrics.staffCount) },
+            { icon: 'cash' as const,       color: '#059669', label: 'Monthly Revenue',     value: String(salon.metrics.monthlyRevenue) },
+            { icon: 'calendar' as const,   color: '#3B82F6', label: 'Total Appointments',  value: String(salon.metrics.totalAppointments) },
+            { icon: 'person-add' as const, color: '#D97706', label: 'Active Clients',      value: String(salon.metrics.activeClients) },
+          ].map((row) => (
+            <View key={row.label} style={styles.infoRow}>
+              <View style={[styles.infoIcon, { backgroundColor: `${row.color}12` }]}>
+                <Ionicons name={row.icon} size={16} color={row.color} />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>{row.label}</Text>
+                <Text style={[styles.infoValue, { color: row.color }]}>{row.value}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        {/* ── Actions ── */}
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="call" size={20} color="#FFFFFF" />
-            <Text style={styles.actionButtonText}>Call Owner</Text>
+          <TouchableOpacity style={[styles.actionPill, { backgroundColor: '#780115' }]}>
+            <Ionicons name="call" size={18} color="#FFFFFF" />
+            <Text style={styles.actionPillText}>Call Owner</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="mail" size={20} color="#FFFFFF" />
-            <Text style={styles.actionButtonText}>Send Email</Text>
+          <TouchableOpacity style={[styles.actionPill, { backgroundColor: '#1D4ED8' }]}>
+            <Ionicons name="mail" size={18} color="#FFFFFF" />
+            <Text style={styles.actionPillText}>Send Email</Text>
           </TouchableOpacity>
         </View>
+
       </ScrollView>
     </SafeAreaView>
   );

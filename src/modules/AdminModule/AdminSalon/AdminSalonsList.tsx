@@ -150,11 +150,23 @@ export default function AdminSalonsList() {
           </View>
 
           <View style={styles.filterSection}>
-            <View style={[styles.filterContainer, styles.skeletonCard]}>
-              <View style={styles.skeletonFilterRow}>
-                {[1, 2, 3, 4, 5].map((item) => (
-                  <View key={item} style={styles.skeletonFilterTab} />
-                ))}
+            <Text style={styles.filterLabel}>Status</Text>
+            <View style={styles.filterRow}>
+              {renderFilterTab('all', selectedStatus, () => setSelectedStatus('all'), 'All')}
+              {renderFilterTab('active', selectedStatus, () => setSelectedStatus('active'), 'Active')}
+              {renderFilterTab('trial', selectedStatus, () => setSelectedStatus('trial'), 'Trial')}
+              {renderFilterTab('expired', selectedStatus, () => setSelectedStatus('expired'), 'Expired')}
+              {renderFilterTab('inactive', selectedStatus, () => setSelectedStatus('inactive'), 'Inactive')}
+              {renderFilterTab('suspended', selectedStatus, () => setSelectedStatus('suspended'), 'Suspended')}
+            </View>
+
+            <View style={styles.planFilterContainer}>
+              <Text style={styles.filterLabel}>Plan</Text>
+              <View style={styles.filterRow}>
+                {renderFilterTab('all', selectedPlan, () => setSelectedPlan('all'), 'All Plans')}
+                {renderFilterTab('basic', selectedPlan, () => setSelectedPlan('basic'), 'Basic')}
+                {renderFilterTab('professional', selectedPlan, () => setSelectedPlan('professional'), 'Pro')}
+                {renderFilterTab('enterprise', selectedPlan, () => setSelectedPlan('enterprise'), 'Enterprise')}
               </View>
             </View>
           </View>
@@ -236,39 +248,31 @@ export default function AdminSalonsList() {
 
         <View style={styles.filterSection}>
           <Text style={styles.filterLabel}>Status</Text>
-          <View style={styles.filterContainer}>
-            <View style={styles.filterRow}>
-              {renderFilterTab('all', selectedStatus, () => setSelectedStatus('all'), 'All')}
-              {renderFilterTab('active', selectedStatus, () => setSelectedStatus('active'), 'Active')}
-              {renderFilterTab('trial', selectedStatus, () => setSelectedStatus('trial'), 'Trial')}
-            </View>
-            <View style={styles.filterRow}>
-              {renderFilterTab('expired', selectedStatus, () => setSelectedStatus('expired'), 'Expired')}
-              {renderFilterTab('inactive', selectedStatus, () => setSelectedStatus('inactive'), 'Inactive')}
-              {renderFilterTab('suspended', selectedStatus, () => setSelectedStatus('suspended'), 'Suspended')}
-            </View>
+          <View style={styles.filterRow}>
+            {renderFilterTab('all', selectedStatus, () => setSelectedStatus('all'), 'All')}
+            {renderFilterTab('active', selectedStatus, () => setSelectedStatus('active'), 'Active')}
+            {renderFilterTab('trial', selectedStatus, () => setSelectedStatus('trial'), 'Trial')}
+            {renderFilterTab('expired', selectedStatus, () => setSelectedStatus('expired'), 'Expired')}
+            {renderFilterTab('inactive', selectedStatus, () => setSelectedStatus('inactive'), 'Inactive')}
+            {renderFilterTab('suspended', selectedStatus, () => setSelectedStatus('suspended'), 'Suspended')}
           </View>
 
           <View style={styles.planFilterContainer}>
-            <Text style={styles.filterLabel}>Subscription Plan</Text>
-            <View style={styles.filterContainer}>
-              <View style={styles.filterRow}>
-                {renderFilterTab('all', selectedPlan, () => setSelectedPlan('all'), 'All Plans')}
-                {renderFilterTab('basic', selectedPlan, () => setSelectedPlan('basic'), 'Basic')}
-                {renderFilterTab('professional', selectedPlan, () => setSelectedPlan('professional'), 'Professional')}
-                {renderFilterTab('enterprise', selectedPlan, () => setSelectedPlan('enterprise'), 'Enterprise')}
-              </View>
+            <Text style={styles.filterLabel}>Plan</Text>
+            <View style={styles.filterRow}>
+              {renderFilterTab('all', selectedPlan, () => setSelectedPlan('all'), 'All Plans')}
+              {renderFilterTab('basic', selectedPlan, () => setSelectedPlan('basic'), 'Basic')}
+              {renderFilterTab('professional', selectedPlan, () => setSelectedPlan('professional'), 'Pro')}
+              {renderFilterTab('enterprise', selectedPlan, () => setSelectedPlan('enterprise'), 'Enterprise')}
             </View>
           </View>
         </View>
 
         <View style={styles.salonsSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
-              All Salons ({filteredSalons.length})
-            </Text>
+            <Text style={styles.sectionTitle}>All Salons</Text>
             <Text style={styles.sectionSubtitle}>
-              {filteredSalons.length} of {salons.length} salons
+              {filteredSalons.length} / {salons.length}
             </Text>
           </View>
 

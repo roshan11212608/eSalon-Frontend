@@ -21,6 +21,7 @@ export interface StatCard {
 
 export interface Salon {
   id: number;
+  shopId: string;
   name: string;
   owner: {
     name: string;

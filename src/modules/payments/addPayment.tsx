@@ -128,12 +128,10 @@ export default function AddPayment() {
   const paymentMethods: PaymentMethod[] = [PaymentMethod.CASH, PaymentMethod.ONLINE];
 
   const calculateCommission = () => {
-    if (newPayment.amount && newPayment.commissionRate) {
+    if (newPayment.amount) {
       const amount = parseFloat(newPayment.amount);
-      const rate = parseFloat(newPayment.commissionRate);
-      const commissionAmount = (amount * rate) / 100;
-      const netAmount = amount - commissionAmount;
-      return { commissionAmount, netAmount };
+      const netAmount = amount; // Staff gets full amount
+      return { netAmount };
     }
     return null;
   };
@@ -291,12 +289,6 @@ export default function AddPayment() {
           
           {calculateCommission() && (
             <View style={styles.commissionPreview}>
-              <View style={styles.commissionRow}>
-                <Text style={styles.commissionLabel}>Commission Amount:</Text>
-                <Text style={styles.commissionValue}>
-                  ₹{calculateCommission()?.commissionAmount.toFixed(2)}
-                </Text>
-              </View>
               <View style={styles.commissionRow}>
                 <Text style={styles.commissionLabel}>Net Payout:</Text>
                 <Text style={styles.netValue}>

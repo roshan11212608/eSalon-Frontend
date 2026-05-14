@@ -61,7 +61,8 @@ export const formatSubscriptionDate = (dateString: string): string => {
 /**
  * Formats currency amount to Indian Rupee format
  */
-export const formatCurrency = (amount: number): string => {
+export const formatCurrency = (amount: number | null | undefined): string => {
+  if (amount == null || isNaN(amount)) return '₹0';
   return `₹${amount.toLocaleString('en-IN')}`;
 };
 
