@@ -14,6 +14,7 @@ export default function SendOtp() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [emailError, setEmailError] = useState('');
 
   const inputRefs = React.useRef<(TextInput | null)[]>([]);
 
@@ -48,15 +49,25 @@ export default function SendOtp() {
     }
 
     setIsLoading(true);
+    setEmailError('');
     try {
       console.log('🚀 Sending OTP to:', email);
+      
+      // Check if email already exists
+      const emailExists = await AuthService.checkEmailExists(email);
+      if (emailExists) {
+        setEmailError('This email is already registered. Please use a different email or login.');
+        setIsLoading(false);
+        return;
+      }
+
       const message = await AuthService.sendOtp({ email });
       console.log('✅ OTP sent response:', message);
       setIsOtpSent(true);
       Alert.alert('OTP Sent', message);
     } catch (error: any) {
       console.error('Send OTP error:', error);
-      Alert.alert('Error', error.message || 'Failed to send OTP');
+      setEmailError(error.message || 'Failed to send OTP');
     } finally {
       setIsLoading(false);
     }
@@ -156,7 +167,10 @@ export default function SendOtp() {
                 <TextInput
                   style={styles.input}
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={(text) => {
+                    setEmail(text);
+                    setEmailError('');
+                  }}
                   placeholder="Email address"
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -164,6 +178,13 @@ export default function SendOtp() {
                   placeholderTextColor={styles.inputPlaceholder.color}
                 />
               </View>
+
+              {emailError && (
+                <View style={styles.errorMessageContainer}>
+                  <Ionicons name="alert-circle" size={20} color="#EF4444" />
+                  <ThemedText style={styles.errorMessageText}>{emailError}</ThemedText>
+                </View>
+              )}
 
               <TouchableOpacity
                 style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}

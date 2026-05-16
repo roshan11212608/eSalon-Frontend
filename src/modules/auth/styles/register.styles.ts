@@ -70,6 +70,25 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
 
+  // Error Message
+  errorMessageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fee2e2',
+    borderWidth: 1,
+    borderColor: '#EF4444',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+  },
+
+  errorMessageText: {
+    fontSize: 14,
+    color: '#1a1a1a',
+    marginLeft: 8,
+    flex: 1,
+  },
+
   verifiedEmail: {
     fontSize: 12,
     color: '#f7b638',

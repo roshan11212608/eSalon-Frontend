@@ -27,6 +27,7 @@ export default function Register() {
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [registrationStep, setRegistrationStep] = useState<'personal' | 'shop'>('personal');
+  const [emailError, setEmailError] = useState('');
 
   // Check if user is coming from verified OTP flow
   useEffect(() => {
@@ -51,7 +52,21 @@ export default function Register() {
     }
 
     setIsLoading(true);
+    setEmailError('');
     try {
+      // Check if email already exists
+      console.log('Checking if email exists:', email);
+      const emailExists = await AuthService.checkEmailExists(email);
+      console.log('Email exists result:', emailExists);
+      
+      if (emailExists) {
+        console.log('Email already exists, showing error');
+        setEmailError('This email is already registered. Please use a different email or login.');
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('Email does not exist, sending OTP');
       const message = await AuthService.sendOtp({ email });
       setIsOtpSent(true);
       setSuccessMessage(message);
@@ -59,7 +74,7 @@ export default function Register() {
       setTimeout(() => setShowSuccessMessage(false), 3000);
     } catch (error: any) {
       console.error('Send OTP error:', error);
-      Alert.alert('Error', error.message || 'Failed to send OTP');
+      setEmailError(error.message || 'Failed to send OTP');
     } finally {
       setIsLoading(false);
     }
@@ -234,7 +249,10 @@ export default function Register() {
                   <TextInput
                     style={styles.emailVerificationInput}
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={(text) => {
+                      setEmail(text);
+                      setEmailError('');
+                    }}
                     placeholder="Email address"
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -244,6 +262,13 @@ export default function Register() {
                 )}
               </View>
             </View>
+
+            {emailError && (
+              <View style={styles.errorMessageContainer}>
+                <Ionicons name="alert-circle" size={20} color="#EF4444" />
+                <Text style={styles.errorMessageText}>{emailError}</Text>
+              </View>
+            )}
 
             {showSuccessMessage && (
               <View style={styles.successMessageContainer}>

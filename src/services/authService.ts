@@ -222,6 +222,20 @@ export class AuthService {
       throw new Error(error.response?.data?.message || 'Failed to reset password');
     }
   }
+
+  // Check if email exists
+  static async checkEmailExists(email: string): Promise<boolean> {
+    try {
+      const response = await apiService.post<ApiResponse<boolean>>(API_ENDPOINTS.AUTH.CHECK_EMAIL, { email });
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Check email error:', error);
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new Error(error.response?.data?.message || 'Failed to check email');
+    }
+  }
 }
 
 export default AuthService;

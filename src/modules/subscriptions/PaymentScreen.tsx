@@ -8,6 +8,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import type { OwnerPlan } from './types';
 import { PaymentService } from './services/PaymentService';
+import { useAuthStore } from '@/src/shared/hooks/useAuthStore';
 
 type PaymentStatus = 'idle' | 'processing' | 'success' | 'failed' | 'pending_verification';
 
@@ -21,6 +22,7 @@ interface PaymentScreenParams {
 export default function PaymentScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<PaymentScreenParams>();
+  const authState = useAuthStore();
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle');
   const [loading, setLoading] = useState(false);
   const [country, setCountry] = useState<'India' | 'Nepal' | 'Others' | null>(null);
@@ -70,7 +72,7 @@ export default function PaymentScreen() {
         razorpayOrderId: 'mock_order_id_' + Date.now(),
         razorpaySignature: 'mock_signature',
         planId,
-        shopId: 1, // TODO: Get from user context
+        shopId: Number(authState.user?.shopId) || 1,
       });
       
       setPaymentStatus('success');
@@ -94,7 +96,7 @@ export default function PaymentScreen() {
         razorpayOrderId: paymentData.razorpay_order_id,
         razorpaySignature: paymentData.razorpay_signature,
         planId,
-        shopId: 1, // TODO: Get from user context
+        shopId: Number(authState.user?.shopId) || 1,
       });
       setPaymentStatus('success');
       Alert.alert('Success', 'Payment successful! Subscription activated.');

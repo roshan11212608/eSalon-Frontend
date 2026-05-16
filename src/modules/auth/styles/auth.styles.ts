@@ -303,4 +303,23 @@ export const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA',
     color: '#A0AEC0',
   },
+
+  // Error Message
+  errorMessageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fee2e2',
+    borderWidth: 1,
+    borderColor: '#EF4444',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 20,
+  },
+
+  errorMessageText: {
+    fontSize: 14,
+    color: '#1a1a1a',
+    marginLeft: 8,
+    flex: 1,
+  },
 });

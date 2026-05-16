@@ -2,6 +2,31 @@
 import { apiService, ApiError } from './apiService';
 import { API_ENDPOINTS } from '../config/api';
 
+// Razorpay types
+export interface RazorpayOrderResponse {
+  razorpayOrderId: string;
+  razorpayKeyId: string;
+  currency: string;
+  amount: number;
+  planName: string;
+  planId: number;
+  shopId: number;
+}
+
+export interface SubscriptionPaymentRequest {
+  planId: number;
+  shopId: number;
+  currency?: string;
+}
+
+export interface RazorpayVerificationRequest {
+  razorpayPaymentId: string;
+  razorpayOrderId: string;
+  razorpaySignature: string;
+  planId: number;
+  shopId: number;
+}
+
 export enum PaymentType {
   CUSTOMER_PAYMENT = 'CUSTOMER_PAYMENT',
   STAFF_PAYOUT = 'STAFF_PAYOUT'
@@ -303,6 +328,49 @@ export class PaymentService {
       }
       throw new Error(error.response?.data?.message || 'Failed to fetch payments');
     }
+  }
+
+  // Razorpay: Create subscription order
+  static async createSubscriptionOrder(
+    request: SubscriptionPaymentRequest
+  ): Promise<RazorpayOrderResponse> {
+    try {
+      const response = await apiService.post<ApiResponse<RazorpayOrderResponse>>(
+        '/payments/subscription/order',
+        request
+      );
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Error creating Razorpay order:', error);
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new Error(error.response?.data?.message || 'Failed to create Razorpay order');
+    }
+  }
+
+  // Razorpay: Verify payment
+  static async verifyRazorpayPayment(
+    request: RazorpayVerificationRequest
+  ): Promise<Payment> {
+    try {
+      const response = await apiService.post<ApiResponse<Payment>>(
+        '/payments/razorpay/verify',
+        request
+      );
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Error verifying Razorpay payment:', error);
+      if (error instanceof ApiError) {
+        throw error;
+      }
+      throw new Error(error.response?.data?.message || 'Failed to verify Razorpay payment');
+    }
+  }
+
+  // Get Razorpay key ID from environment
+  static getRazorpayKeyId(): string {
+    return process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || '';
   }
 }
 
