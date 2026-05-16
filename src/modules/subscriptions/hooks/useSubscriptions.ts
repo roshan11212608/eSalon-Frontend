@@ -22,7 +22,9 @@ export const useSubscriptions = () => {
   } = useQuery<SubscriptionStatus>({
     queryKey: ['owner', 'subscription', 'status'],
     queryFn: PaymentService.getOwnerSubscriptionStatus,
-    staleTime: 1 * 60 * 1000,
+    staleTime: 30 * 1000,
+    refetchInterval: 30 * 1000,
+    refetchOnWindowFocus: true,
   });
 
   return {

@@ -70,7 +70,7 @@ export default function AdminPaymentsScreen() {
     if (activeTab === 'Pending Verification') {
       filtered = filtered.filter(p => p.status === 'Pending Verification');
     } else if (activeTab === 'Failed') {
-      filtered = filtered.filter(p => p.status === 'Failed');
+      filtered = filtered.filter(p => p.status === 'Failed' || p.status === 'Rejected');
     }
 
     // Filter by country

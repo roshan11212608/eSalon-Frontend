@@ -22,7 +22,7 @@ export default function PaymentStatCard({
   return (
     <View style={s.container}>
       <View style={[s.iconContainer, { backgroundColor: `${color}15` }]}>
-        <Ionicons name={icon} size={24} color={color} />
+        <Ionicons name={icon} size={18} color={color} />
       </View>
       <View style={s.content}>
         <Text style={s.title}>{title}</Text>
@@ -48,46 +48,50 @@ const s = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 12,
+    padding: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
+    flexShrink: 1,
+    minWidth: 0,
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
   content: {
     flex: 1,
+    minWidth: 0,
   },
   title: {
-    fontSize: 12,
+    fontSize: 9,
     fontWeight: '500',
     color: '#6B7280',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   value: {
-    fontSize: 20,
+    fontSize: 13,
     fontWeight: '700',
     color: '#1a1a1a',
-    marginBottom: 2,
+    marginBottom: 1,
+    flexShrink: 1,
   },
   trendContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   trend: {
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: '600',
   },
 });

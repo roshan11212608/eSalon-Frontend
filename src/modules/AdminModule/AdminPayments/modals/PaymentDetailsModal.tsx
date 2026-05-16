@@ -196,6 +196,19 @@ export default function PaymentDetailsModal({
                 )}
               </View>
             )}
+
+            {(payment.status === 'Rejected' || payment.status === 'CANCELLED') && payment.adminNote ? (
+              <View style={s.section}>
+                <Text style={s.sectionTitle}>Admin Note</Text>
+                <View style={s.adminNoteBox}>
+                  <View style={s.adminNoteHeader}>
+                    <Ionicons name="chatbubble" size={16} color="#DC2626" />
+                    <Text style={s.adminNoteLabel}>Rejection Note:</Text>
+                  </View>
+                  <Text style={s.adminNoteText}>{payment.adminNote}</Text>
+                </View>
+              </View>
+            ) : null}
           </ScrollView>
 
           <View style={s.actions}>
@@ -308,6 +321,29 @@ const s = StyleSheet.create({
   errorText: {
     fontSize: 12,
     color: '#7F1D1D',
+  },
+  adminNoteBox: {
+    backgroundColor: '#FEF2F2',
+    padding: 12,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#DC2626',
+  },
+  adminNoteHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  adminNoteLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#DC2626',
+  },
+  adminNoteText: {
+    fontSize: 13,
+    color: '#1a1a1a',
+    lineHeight: 18,
   },
   actions: {
     flexDirection: 'row',

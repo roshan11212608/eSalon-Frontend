@@ -119,5 +119,5 @@ export const getPaymentMethodColor = (method: PaymentMethod): string => {
 };
 
 export const getCurrencySymbol = (country: 'India' | 'Nepal' | 'Others'): string => {
-  return CountryConfig[country]?.currency || '$';
+  return CountryConfig[country]?.currency || '₹';
 };

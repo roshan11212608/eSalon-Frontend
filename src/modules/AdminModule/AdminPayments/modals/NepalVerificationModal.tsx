@@ -30,16 +30,20 @@ export default function NepalVerificationModal({
 }: NepalVerificationModalProps) {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+  const [successState, setSuccessState] = useState<'approve' | 'reject' | 'reupload' | null>(null);
 
   const handleApprove = async () => {
     if (!payment) return;
     setLoading(true);
     try {
       await paymentService.approveNepalPayment(payment.id, note);
-      Alert.alert('Success', 'Payment approved successfully');
-      onVerified();
-      onClose();
-      setNote('');
+      setSuccessState('approve');
+      setTimeout(() => {
+        onVerified();
+        onClose();
+        setNote('');
+        setSuccessState(null);
+      }, 2000);
     } catch (error) {
       Alert.alert('Error', 'Failed to approve payment');
     } finally {
@@ -56,10 +60,13 @@ export default function NepalVerificationModal({
     setLoading(true);
     try {
       await paymentService.rejectNepalPayment(payment.id, note);
-      Alert.alert('Success', 'Payment rejected successfully');
-      onVerified();
-      onClose();
-      setNote('');
+      setSuccessState('reject');
+      setTimeout(() => {
+        onVerified();
+        onClose();
+        setNote('');
+        setSuccessState(null);
+      }, 2000);
     } catch (error) {
       Alert.alert('Error', 'Failed to reject payment');
     } finally {
@@ -76,10 +83,13 @@ export default function NepalVerificationModal({
     setLoading(true);
     try {
       await paymentService.requestReupload(payment.id, note);
-      Alert.alert('Success', 'Reupload requested successfully');
-      onVerified();
-      onClose();
-      setNote('');
+      setSuccessState('reupload');
+      setTimeout(() => {
+        onVerified();
+        onClose();
+        setNote('');
+        setSuccessState(null);
+      }, 2000);
     } catch (error) {
       Alert.alert('Error', 'Failed to request reupload');
     } finally {
@@ -95,6 +105,41 @@ export default function NepalVerificationModal({
     <Modal visible={visible} animationType="slide" transparent>
       <View style={s.overlay}>
         <View style={s.container}>
+          {/* Success Overlay */}
+          {successState && (
+            <View style={s.successOverlay}>
+              <View style={s.successContent}>
+                {successState === 'approve' ? (
+                  <View>
+                    <View style={s.successIconContainer}>
+                      <Ionicons name="checkmark-circle-outline" size={60} color="#10B981" />
+                    </View>
+                    <Text style={s.successTitle}>Payment Approved</Text>
+                    <Text style={s.successMessage}>The payment has been successfully approved</Text>
+                  </View>
+                ) : null}
+                {successState === 'reject' ? (
+                  <View>
+                    <View style={s.successIconContainer}>
+                      <Ionicons name="close-circle-outline" size={60} color="#EF4444" />
+                    </View>
+                    <Text style={s.successTitle}>Payment Rejected</Text>
+                    <Text style={s.successMessage}>The payment has been successfully rejected</Text>
+                  </View>
+                ) : null}
+                {successState === 'reupload' ? (
+                  <View>
+                    <View style={s.successIconContainer}>
+                      <Ionicons name="refresh-outline" size={60} color="#F59E0B" />
+                    </View>
+                    <Text style={s.successTitle}>Reupload Requested</Text>
+                    <Text style={s.successMessage}>The owner has been notified to reupload payment proof</Text>
+                  </View>
+                ) : null}
+              </View>
+            </View>
+          )}
+
           <View style={s.header}>
             <Text style={s.title}>Verify Nepal Payment</Text>
             <TouchableOpacity onPress={onClose}>
@@ -361,5 +406,35 @@ const s = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#FFF',
+  },
+  successOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  successContent: {
+    alignItems: 'center',
+    padding: 20,
+  },
+  successIconContainer: {
+    marginBottom: 16,
+  },
+  successTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 8,
+  },
+  successMessage: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
+    textAlign: 'center',
   },
 });

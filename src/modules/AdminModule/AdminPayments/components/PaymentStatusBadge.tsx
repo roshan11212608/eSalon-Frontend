@@ -8,7 +8,7 @@ interface PaymentStatusBadgeProps {
   size?: 'small' | 'medium' | 'large';
 }
 
-export default function PaymentStatusBadge({ status, size = 'medium' }: PaymentStatusBadgeProps) {
+export default function PaymentStatusBadge({ status, size = 'small' }: PaymentStatusBadgeProps) {
   const color = getStatusColor(status);
   const backgroundColor = getStatusBackgroundColor(status);
 

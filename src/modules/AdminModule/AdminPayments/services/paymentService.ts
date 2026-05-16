@@ -109,6 +109,7 @@ class PaymentService {
       planId: '',
       invoiceNumber: `INV-${dto.id}`,
       tax: 0,
+      adminNote: dto.adminNote,
       verification: dto.paymentProofImage ? {
         screenshotUrl: dto.paymentProofImage,
         uploadedAt: dto.createdAt || '',

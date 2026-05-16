@@ -23,6 +23,7 @@ export interface Payment {
   verification?: NepalVerification;
   failureReason?: string;
   retryAttempts?: number;
+  adminNote?: string;
 }
 
 export interface NepalVerification {
@@ -98,6 +99,7 @@ export type PaymentStatus =
   | 'Pending'
   | 'Pending Verification'
   | 'Rejected'
-  | 'Refunded';
+  | 'Refunded'
+  | 'CANCELLED';
 
 export type PaymentType = 'Subscription' | 'One-time' | 'Renewal';
