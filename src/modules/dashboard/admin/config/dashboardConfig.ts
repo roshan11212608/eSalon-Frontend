@@ -28,7 +28,7 @@ export const SUMMARY_CARDS = {
   labels: {
     salons: 'Salons',
     users: 'Users',
-    subscriptions: 'Active Subs',
+    subscriptions: 'Subs',
     revenue: 'Revenue',
   },
 } as const;

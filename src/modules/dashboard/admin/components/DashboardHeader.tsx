@@ -15,7 +15,7 @@ export default function DashboardHeader({
   return (
     <View style={styles.headerCard}>
       <LinearGradient
-        colors={['#780115', '#9A1B2E']}
+        colors={['#FFD700', '#FFC107']}
         style={styles.headerGradient}
       >
         {/* Decorative circles */}

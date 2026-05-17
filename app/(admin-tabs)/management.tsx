@@ -78,23 +78,20 @@ export default function ManagementScreen() {
   return (
     <View style={s.container}>
       <View style={s.header}>
-        <Text style={s.title}>Management</Text>
-        <Text style={s.subtitle}>System administration and settings</Text>
+        <Text style={s.title}>Manage<Text style={s.titleAccent}>ment</Text></Text>
       </View>
 
       <ScrollView style={s.content} contentContainerStyle={s.contentContainer}>
-        {managementItems.map((item) => (
-          <TouchableOpacity key={item.id} style={s.card} onPress={() => handleItemPress(item)}>
-            <View style={[s.iconContainer, { backgroundColor: `${item.color}15` }]}>
-              <Ionicons name={item.icon} size={28} color={item.color} />
-            </View>
-            <View style={s.cardContent}>
-              <Text style={s.cardTitle}>{item.title}</Text>
-              <Text style={s.cardDescription}>{item.description}</Text>
-            </View>
-            {item.route && <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />}
-          </TouchableOpacity>
-        ))}
+        <View style={s.grid}>
+          {managementItems.map((item) => (
+            <TouchableOpacity key={item.id} style={s.card} onPress={() => handleItemPress(item)} activeOpacity={0.75}>
+              <View style={[s.iconContainer, { backgroundColor: `${item.color}18` }]}>
+                <Ionicons name={item.icon} size={18} color={item.color} />
+              </View>
+              <Text style={s.cardTitle} numberOfLines={1}>{item.title}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </ScrollView>
     </View>
   );
@@ -103,61 +100,78 @@ export default function ManagementScreen() {
 const s = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F6F3',
+    backgroundColor: '#ffffff',
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#F8F6F3',
+    paddingVertical: 8,
+    backgroundColor: '#f5f5f5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e5e5',
   },
   title: {
-    fontSize: 28,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#1a1a1a',
+    letterSpacing: 1,
   },
-  subtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 4,
+  titleAccent: {
+    color: '#f7b638',
   },
   content: {
     flex: 1,
   },
   contentContainer: {
-    padding: 20,
-    gap: 12,
+    padding: 12,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
   },
   card: {
-    flexDirection: 'row',
+    width: '47%',
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
   },
   iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 8,
   },
   cardContent: {
     flex: 1,
-    marginLeft: 12,
   },
   cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
     color: '#1a1a1a',
-    marginBottom: 4,
+    textAlign: 'center',
   },
   cardDescription: {
-    fontSize: 13,
-    color: '#6B7280',
+    fontSize: 11,
+    color: '#888888',
+    lineHeight: 15,
+  },
+  badge: {
+    marginTop: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#fff9e6',
+    borderWidth: 1,
+    borderColor: '#f7b638',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

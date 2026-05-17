@@ -6,7 +6,6 @@ import {
   Alert, KeyboardAvoidingView, Platform, ScrollView,
   StyleSheet, Switch, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { AdminPlanService } from '../services/adminPlanService';
 import { MOCK_PLANS, PLAN_COLORS } from '../data/mockPlans';
 import {
@@ -124,22 +123,21 @@ export default function PlanFormScreen({ planId }: Props) {
   useEffect(() => () => { if (navTimer.current) clearTimeout(navTimer.current); }, []);
 
   return (
-    <SafeAreaView style={s.container} edges={['top', 'bottom']}>
-      {/* Header */}
+    <View style={s.container}>
       <View style={s.header}>
         <TouchableOpacity style={s.backBtn} onPress={navigateBack} disabled={saved || saving}>
-          <Ionicons name="arrow-back" size={20} color={saved || saving ? '#D1D5DB' : '#374151'} />
+          <Ionicons name="arrow-back" size={18} color={saved || saving ? '#D1D5DB' : '#1a1a1a'} />
         </TouchableOpacity>
-        <Text style={s.headerTitle}>{isEdit ? 'Edit Plan' : 'Create New Plan'}</Text>
+        <Text style={s.headerTitle} numberOfLines={1}>{isEdit ? 'Edit ' : 'New '}<Text style={s.headerAccent}>Plan</Text></Text>
         <TouchableOpacity
-          style={[s.saveBtn, { backgroundColor: saved ? '#059669' : saving ? '#9CA3AF' : form.color }]}
+          style={[s.saveBtn, { backgroundColor: saved ? '#059669' : saving ? '#9CA3AF' : '#f7b638' }]}
           onPress={handleSave}
           disabled={saved || saving}
           activeOpacity={0.85}
         >
           {saved ? (
             <View style={s.saveBtnInner}>
-              <Ionicons name="checkmark" size={14} color="#FFF" />
+              <Ionicons name="checkmark" size={13} color="#FFF" />
               <Text style={s.saveBtnText}>Saved!</Text>
             </View>
           ) : saving ? (
@@ -224,48 +222,49 @@ export default function PlanFormScreen({ planId }: Props) {
           <View style={{ height: 32 }} />
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8F6F3' },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 14,
-    backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
+    paddingHorizontal: 20, paddingVertical: 8,
+    backgroundColor: '#f5f5f5', borderBottomWidth: 1, borderBottomColor: '#e5e5e5',
   },
-  backBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: '#111827', letterSpacing: -0.3 },
-  saveBtn: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 20, minWidth: 80, alignItems: 'center' },
+  backBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e0e0e0', alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a', letterSpacing: 0.5 },
+  headerAccent: { color: '#f7b638' },
+  saveBtn: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16, minWidth: 70, alignItems: 'center' },
   saveBtnInner: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  saveBtnText: { fontSize: 14, fontWeight: '700', color: '#FFF' },
+  saveBtnText: { fontSize: 12, fontWeight: '700', color: '#1a1a1a' },
   scroll: { flex: 1 },
-  scrollContent: { padding: 16 },
-  sectionHeader: { marginTop: 20, marginBottom: 10, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
-  sectionTitle: { fontSize: 12, fontWeight: '800', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.8 },
-  field: { marginBottom: 12 },
-  fieldLabel: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 6 },
+  scrollContent: { padding: 14 },
+  sectionHeader: { marginTop: 16, marginBottom: 8, paddingBottom: 5, borderBottomWidth: 1, borderBottomColor: '#e5e5e5' },
+  sectionTitle: { fontSize: 11, fontWeight: '700', color: '#6B7280', textTransform: 'uppercase', letterSpacing: 0.6 },
+  field: { marginBottom: 10 },
+  fieldLabel: { fontSize: 12, fontWeight: '600', color: '#374151', marginBottom: 5 },
   input: {
-    backgroundColor: '#FFF', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11,
-    fontSize: 15, color: '#111827', borderWidth: 1, borderColor: '#E5E7EB',
+    backgroundColor: '#ffffff', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10,
+    fontSize: 13, color: '#1a1a1a', borderWidth: 1, borderColor: '#e0e0e0',
   },
-  multiline: { height: 80, paddingTop: 11 },
-  row: { flexDirection: 'row', gap: 12 },
+  multiline: { height: 72, paddingTop: 10 },
+  row: { flexDirection: 'row', gap: 10 },
   halfInput: { flex: 1 },
   toggleRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#FFF', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, borderColor: '#F3F4F6',
+    backgroundColor: '#ffffff', borderRadius: 10, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: '#e0e0e0',
   },
   toggleInfo: { flex: 1, marginRight: 12 },
-  toggleLabel: { fontSize: 14, fontWeight: '600', color: '#111827' },
-  toggleSub: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  colorRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
-  colorDot: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
-  colorDotActive: { borderColor: '#111827', transform: [{ scale: 1.1 }] },
+  toggleLabel: { fontSize: 13, fontWeight: '600', color: '#1a1a1a' },
+  toggleSub: { fontSize: 11, color: '#9CA3AF', marginTop: 2 },
+  colorRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  colorDot: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
+  colorDotActive: { borderColor: '#1a1a1a', transform: [{ scale: 1.1 }] },
   errorBanner: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#EF4444', paddingHorizontal: 16, paddingVertical: 10,
+    backgroundColor: '#EF4444', paddingHorizontal: 14, paddingVertical: 8,
   },
-  errorBannerText: { flex: 1, fontSize: 13, color: '#FFF', fontWeight: '500' },
+  errorBannerText: { flex: 1, fontSize: 12, color: '#FFF', fontWeight: '500' },
 });

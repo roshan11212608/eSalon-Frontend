@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, Animated } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { styles } from '../styles/adminDashboard.styles';
 import { SUMMARY_CARDS } from '../config/dashboardConfig';
 import { SummaryCardsProps } from '../types/dashboard.types';
@@ -18,10 +19,10 @@ export default function SummaryCards({ stats, cardAnimations }: SummaryCardsProp
   }, [cardAnimations]);
 
   const cards = [
-    { key: 'salons', value: stats.totalSalons, color: SUMMARY_CARDS.colors.salons },
-    { key: 'users', value: stats.totalUsers, color: SUMMARY_CARDS.colors.users },
-    { key: 'subscriptions', value: stats.activeSubscriptions, color: SUMMARY_CARDS.colors.subscriptions },
-    { key: 'revenue', value: `₹${(stats.totalRevenue / 1000).toFixed(0)}K`, color: SUMMARY_CARDS.colors.revenue },
+    { key: 'salons', value: stats.totalSalons, color: SUMMARY_CARDS.colors.salons, icon: 'storefront' as const },
+    { key: 'users', value: stats.totalUsers, color: SUMMARY_CARDS.colors.users, icon: 'people' as const },
+    { key: 'subscriptions', value: stats.activeSubscriptions, color: SUMMARY_CARDS.colors.subscriptions, icon: 'card' as const },
+    { key: 'revenue', value: `₹${(stats.totalRevenue / 1000).toFixed(0)}K`, color: SUMMARY_CARDS.colors.revenue, icon: 'cash' as const },
   ];
 
   return (
@@ -36,10 +37,13 @@ export default function SummaryCards({ stats, cardAnimations }: SummaryCardsProp
               { backgroundColor: card.color.background, opacity: cardAnimations[index] },
             ]}
           >
+            <View style={styles.summaryIconContainer}>
+              <Ionicons name={card.icon} size={20} color={card.color.text} />
+            </View>
             <Text style={[styles.summaryCount, { color: card.color.text }]}>
               {card.value}
             </Text>
-            <Text style={styles.summaryLabel}>
+            <Text style={styles.summaryLabel} numberOfLines={1}>
               {SUMMARY_CARDS.labels[card.key as keyof typeof SUMMARY_CARDS.labels]}
             </Text>
           </Animated.View>

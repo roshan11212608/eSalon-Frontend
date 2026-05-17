@@ -1,0 +1,73 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 20, paddingVertical: 8,
+    backgroundColor: '#f5f5f5', borderBottomWidth: 1, borderBottomColor: '#e5e5e5',
+  },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a', letterSpacing: 0.5 },
+  headerAccent: { color: '#f7b638' },
+  content: { flex: 1, padding: 12 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 24 },
+  loadingText: { fontSize: 13, color: '#6B7280' },
+  retryButton: { paddingHorizontal: 24, paddingVertical: 8, backgroundColor: '#f7b638', borderRadius: 16 },
+  retryButtonText: { color: '#1a1a1a', fontSize: 13, fontWeight: '700' },
+  filterContainer: { flexDirection: 'row', gap: 6, marginBottom: 12 },
+  filterButton: {
+    flex: 1, paddingVertical: 6, paddingHorizontal: 8, borderRadius: 16,
+    backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e0e0e0',
+  },
+  filterButtonActive: { backgroundColor: '#f7b638', borderColor: '#f7b638' },
+  filterButtonText: { fontSize: 11, fontWeight: '600', color: '#6B7280', textAlign: 'center' },
+  filterButtonTextActive: { color: '#1a1a1a', fontWeight: '700' },
+  summaryContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
+  summaryCard: {
+    flex: 1, minWidth: '45%', backgroundColor: '#ffffff',
+    borderRadius: 10, padding: 10, borderWidth: 1, borderColor: '#e0e0e0',
+  },
+  summaryCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  summaryLabel: { fontSize: 11, color: '#6B7280', fontWeight: '500', flex: 1 },
+  summaryValue: { fontSize: 16, fontWeight: '800', color: '#1a1a1a', marginBottom: 3 },
+  summaryChange: { fontSize: 10, color: '#6B7280' },
+  section: { marginBottom: 12 },
+  sectionTitle: { fontSize: 13, fontWeight: '700', color: '#1a1a1a', marginBottom: 8 },
+  chartContainer: {
+    backgroundColor: '#ffffff', borderRadius: 10,
+    padding: 14, borderWidth: 1, borderColor: '#e0e0e0',
+  },
+  chartPlaceholder: { alignItems: 'center', justifyContent: 'center', paddingVertical: 24, gap: 8 },
+  chartText: { fontSize: 15, fontWeight: '700', color: '#1a1a1a' },
+  chartSubtext: { fontSize: 12, color: '#6B7280' },
+  analyticsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  analyticsItem: {
+    flex: 1, minWidth: '45%', backgroundColor: '#ffffff',
+    borderRadius: 10, padding: 10, borderWidth: 1, borderColor: '#e0e0e0',
+  },
+  analyticsLabel: {
+    fontSize: 10, color: '#6B7280', fontWeight: '600',
+    textTransform: 'uppercase', letterSpacing: 0.3, marginBottom: 4,
+  },
+  analyticsValue: { fontSize: 15, fontWeight: '800', color: '#1a1a1a' },
+  salonList: {
+    backgroundColor: '#ffffff', borderRadius: 10,
+    borderWidth: 1, borderColor: '#e0e0e0', overflow: 'hidden',
+  },
+  salonItem: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 12, paddingVertical: 10,
+    borderBottomWidth: 1, borderBottomColor: '#f0f0f0',
+  },
+  salonRank: {
+    width: 26, height: 26, borderRadius: 13, backgroundColor: '#f7b638',
+    alignItems: 'center', justifyContent: 'center', marginRight: 10,
+  },
+  salonRankText: { fontSize: 11, fontWeight: '800', color: '#1a1a1a' },
+  salonInfo: { flex: 1 },
+  salonName: { fontSize: 13, fontWeight: '600', color: '#1a1a1a' },
+  salonOwner: { fontSize: 11, color: '#6B7280', marginTop: 1 },
+  salonRevenue: { alignItems: 'flex-end' },
+  salonRevenueValue: { fontSize: 13, fontWeight: '700', color: '#1a1a1a' },
+  salonRevenuePercent: { fontSize: 10, color: '#6B7280', marginTop: 1 },
+});

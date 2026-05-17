@@ -23,8 +23,8 @@ const DEFAULT_DEV_URL = Platform.OS === 'web'
 
 // API Configuration
 export const API_CONFIG = {
-  // API URL: Use env variable only for web, use IP fallback for mobile
-  BASE_URL: Platform.OS === 'web' && process.env.EXPO_PUBLIC_API_URL
+  // API URL: Use env variable if available, otherwise use fallbacks
+  BASE_URL: process.env.EXPO_PUBLIC_API_URL
     ? process.env.EXPO_PUBLIC_API_URL
     : (__DEV__ ? DEFAULT_DEV_URL : 'https://api.esalon.com/api'),
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import ForgotPassword from '../../src/modules/auth/ForgotPassword';
 import { styles } from '../../src/modules/auth/styles/forgotPassword.styles';
@@ -37,9 +37,7 @@ export default function ForgotPasswordScreen() {
   return (
     <>
       <View style={styles.container}>
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          <ForgotPassword onSave={handleSave} onCancel={handleCancel} />
-        </ScrollView>
+        <ForgotPassword onSave={handleSave} onCancel={handleCancel} />
       </View>
 
       <SuccessModal

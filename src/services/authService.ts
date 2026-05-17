@@ -184,7 +184,7 @@ export class AuthService {
   // Send OTP
   static async sendOtp(request: OtpRequest): Promise<string> {
     try {
-      const response = await apiService.post<ApiResponse<string>>(API_ENDPOINTS.AUTH.SEND_OTP, request);
+      const response = await apiService.post<ApiResponse<string>>(API_ENDPOINTS.AUTH.SEND_OTP, request, { timeout: 30000 });
       return response.data.data;
     } catch (error: any) {
       console.error('Send OTP error:', error);

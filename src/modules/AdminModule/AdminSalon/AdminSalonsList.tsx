@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { styles } from './styles/salonsList.styles';
 import { StatCard } from './components/StatCard';
@@ -121,7 +120,7 @@ export default function AdminSalonsList() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Salons Management</Text>
         </View>
@@ -176,13 +175,13 @@ export default function AdminSalonsList() {
           <ActivityIndicator size="large" color="#780115" />
           <Text style={styles.loadingText}>Loading salons...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (error) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Salons Management</Text>
         </View>
@@ -194,14 +193,14 @@ export default function AdminSalonsList() {
             <Text style={{ color: '#780115', fontWeight: '600' }}>Retry</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Salons Management</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>Salons <Text style={styles.headerAccent}>Management</Text></Text>
       </View>
 
       <ScrollView
@@ -227,7 +226,7 @@ export default function AdminSalonsList() {
 
         <View style={styles.searchSection}>
           <View style={styles.searchContainer}>
-            <Ionicons name="search" size={20} color="#9CA3AF" />
+            <Ionicons name="search" size={18} color="#f7b638" />
             <TextInput
               style={styles.searchInput}
               placeholder="Search salons, owners, email, or phone..."
@@ -295,6 +294,6 @@ export default function AdminSalonsList() {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

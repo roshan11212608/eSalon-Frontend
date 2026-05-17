@@ -6,11 +6,10 @@ import {
   ActivityIndicator, Alert, Dimensions, FlatList, Modal, RefreshControl,
   ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatCard } from '../AdminSalon/components/StatCard';
 import { AnalyticsSection } from './components/AnalyticsSection';
 import { PlanCard } from './components/PlanCard';
-import { MOCK_PLANS, computeStatCards } from './data/mockPlans';
+import { computeStatCards } from './data/mockPlans';
 import { AdminPlanService } from './services/adminPlanService';
 import { styles } from './styles/plansList.styles';
 import { PlanStatus, PlanTier, SubscriptionPlan } from './types/plan.types';
@@ -22,10 +21,9 @@ export default function AdminPlansScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { data: plans = MOCK_PLANS, isLoading, isRefetching, error, refetch } = useQuery({
+  const { data: plans = [], isLoading, isRefetching, error, refetch } = useQuery({
     queryKey: ['admin', 'plans'],
     queryFn: AdminPlanService.listPlans,
-    placeholderData: MOCK_PLANS,
   });
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -136,31 +134,25 @@ export default function AdminPlansScreen() {
 
   const cardWidth = isTablet ? (width - 48 - 12) / 2 : undefined;
 
-  if (isLoading && plans === MOCK_PLANS) {
+  if (isLoading) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.container}>
         <View style={styles.header}>
-          <View>
-            <Text style={styles.headerTitle}>Plans & Billing</Text>
-            <Text style={styles.headerSub}>Manage subscription plans</Text>
-          </View>
+          <Text style={styles.headerTitle} numberOfLines={1}>Plans <Text style={styles.headerAccent}>& Billing</Text></Text>
         </View>
         <View style={lStyles.center}>
           <ActivityIndicator size="large" color="#780115" />
           <Text style={lStyles.text}>Loading plans...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (error && plans.length === 0) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.container}>
         <View style={styles.header}>
-          <View>
-            <Text style={styles.headerTitle}>Plans & Billing</Text>
-            <Text style={styles.headerSub}>Manage subscription plans</Text>
-          </View>
+          <Text style={styles.headerTitle} numberOfLines={1}>Plans <Text style={styles.headerAccent}>& Billing</Text></Text>
         </View>
         <View style={lStyles.center}>
           <Ionicons name="cloud-offline-outline" size={56} color="#D1D5DB" />
@@ -172,23 +164,20 @@ export default function AdminPlansScreen() {
             <Text style={lStyles.retryText}>Retry</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Plans & Billing</Text>
-          <Text style={styles.headerSub}>Manage subscription plans</Text>
-        </View>
+        <Text style={styles.headerTitle} numberOfLines={1}>Plans <Text style={styles.headerAccent}>& Billing</Text></Text>
         <TouchableOpacity
           style={styles.newPlanBtn}
           onPress={() => router.push('/(admin-tabs)/plans/create')}
           activeOpacity={0.85}
         >
-          <Ionicons name="add" size={16} color="#FFF" />
+          <Ionicons name="add" size={16} color="#1a1a1a" />
           <Text style={styles.newPlanBtnText}>New Plan</Text>
         </TouchableOpacity>
       </View>
@@ -213,7 +202,7 @@ export default function AdminPlansScreen() {
 
         <View style={styles.searchSection}>
           <View style={styles.searchContainer}>
-            <Ionicons name="search" size={18} color="#9CA3AF" />
+            <Ionicons name="search" size={18} color="#f7b638" />
             <TextInput
               style={styles.searchInput}
               placeholder="Search plans, features..."
@@ -342,7 +331,7 @@ export default function AdminPlansScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 

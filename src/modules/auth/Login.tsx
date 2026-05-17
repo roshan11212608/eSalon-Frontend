@@ -159,7 +159,7 @@ export default function Login() {
 
             <TouchableOpacity 
               style={styles.forgotPasswordButton}
-              onPress={() => router.push('/auth/forgot-password')}
+              onPress={() => router.push('/auth/forgot-password-send-otp')}
               activeOpacity={0.7}
             >
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
